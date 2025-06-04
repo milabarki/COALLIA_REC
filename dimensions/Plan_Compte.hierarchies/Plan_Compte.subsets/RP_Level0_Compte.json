@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"RP_Level0_Compte",
-	"Alias":"Code-Libelle",
-	"Expression":"TM1IGNORE_BADTUPLES {{TM1FILTERBYLEVEL(DISTINCT({DESCENDANTS([Plan_Compte].[Plan_Compte].[Total_Compte])}), 0)}}"
-}

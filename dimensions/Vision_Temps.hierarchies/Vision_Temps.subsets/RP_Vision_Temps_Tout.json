@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"RP_Vision_Temps_Tout",
-	"Alias":"MEMBER_NAME",
-	"Expression":"TM1IGNORE_BADTUPLES {{[Vision_Temps].[Vision_Temps].Levels(0).MEMBERS}}"
-}

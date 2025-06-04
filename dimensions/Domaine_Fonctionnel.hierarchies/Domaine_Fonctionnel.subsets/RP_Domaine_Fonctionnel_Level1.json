@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"RP_Domaine_Fonctionnel_Level1",
-	"Alias":"MEMBER_NAME",
-	"Expression":"TM1IGNORE_BADTUPLES {[Domaine_Fonctionnel].[Domaine_Fonctionnel].MEMBERS}"
-}

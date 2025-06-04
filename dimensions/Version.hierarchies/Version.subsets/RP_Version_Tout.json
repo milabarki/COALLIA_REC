@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"RP_Version_Tout",
-	"Alias":"MEMBER_NAME",
-	"Expression":"TM1IGNORE_BADTUPLES {[Version].[Version].MEMBERS}"
-}

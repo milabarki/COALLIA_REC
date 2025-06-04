@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"Décembre",
-	"Alias":"MEMBER_NAME",
-	"Expression":"TM1IGNORE_BADTUPLES {{TM1FILTERBYPATTERN(TM1SubsetToSet([Periode].[Periode], \"Default\", \"public\"),\"*12*\",\"MEMBER_NAME\")}}"
-}
