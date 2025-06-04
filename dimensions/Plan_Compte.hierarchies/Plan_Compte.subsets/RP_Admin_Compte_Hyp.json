@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Admin_Compte_Hyp",
+	"Alias":"Code-Libelle",
+	"Expression":"TM1IGNORE_BADTUPLES {{FILTER(TM1SubsetToSet([Plan_Compte].[Plan_Compte], \"RP_Level0_Compte\", \"public\"), ([Plan_Compte].[Plan_Compte].CURRENTMEMBER.PROPERTIES(\"Compte_Bud\") = \"X\"))}}"
+}

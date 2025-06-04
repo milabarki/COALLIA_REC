@@ -1,0 +1,121 @@
+SKIPCHECK;
+
+#REGION ######## SKIPCHECK
+#===========================
+
+
+#Region *** Rule_1:Indicateur SB Step1
+# On neutralise les consolidation pour les hierarchies qui ont un split D/C => On force à zero
+
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] = 
+  if(
+      (DIMIX( 'Plan_Compte',!Plan_Compte | '_C')<>0 % DIMIX( 'Plan_Compte',!Plan_Compte | '_D')<>0) & ELLEV( 'Plan_Compte',  !Plan_Compte)=1 
+    , 0
+    , CONTINUE
+  );
+
+#EndRegion
+
+#Region *** Rule_2:Indicateur SB Step2.1
+# On calcul les splits D en fonction du signe (si SC Négatif)
+
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] = 
+if(SUBST( !Plan_Compte, long(!Plan_Compte)-1,2 ) @= '_D' ,  
+          if(db('FIN_BUD_Reel_Reporting', !Version, !Periode, !Domaine_Fonctionnel,!Centre_Profit, SUBST( !Plan_Compte, 1,long(!Plan_Compte)-2),!Vision_Temps, 'SC' )<0,
+                    db('FIN_BUD_Reel_Reporting', !Version, !Periode, !Domaine_Fonctionnel,!Centre_Profit, SUBST( !Plan_Compte, 1,long(!Plan_Compte)-2),!Vision_Temps, 'SC' ),0 )
+  ,CONTINUE);
+
+#EndRegion
+
+#Region *** Rule_3:Indicateur SB Step2.2
+# On calcul les splits C en fonction du signe (si SC Positif)
+
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] = 
+if(SUBST( !Plan_Compte, long(!Plan_Compte)-1,2 ) @= '_C' ,  
+          if(db('FIN_BUD_Reel_Reporting', !Version, !Periode, !Domaine_Fonctionnel,!Centre_Profit, SUBST( !Plan_Compte, 1,long(!Plan_Compte)-2),!Vision_Temps, 'SC' )>0,
+                    db('FIN_BUD_Reel_Reporting', !Version, !Periode, !Domaine_Fonctionnel,!Centre_Profit, SUBST( !Plan_Compte, 1,long(!Plan_Compte)-2),!Vision_Temps, 'SC' ),0 )
+  ,CONTINUE);
+
+#EndRegion
+
+#Region *** Rule_4:Indicateur SB Step3.1
+# On reprends les mêmes valeur SC pour les comptes de Bilan (Niveau Compte)
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] = N: if(SUBST( !Plan_Compte, 1, 1 )@>'5',STET,CONTINUE);
+#EndRegion;
+
+#Region *** Rule_5:Indicateur SB Step3.2
+# On force les consolidations les rubriques (niveau Conso) non concernés par les retraitement SB
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] =   N:['Indicateur_FIN':'Indicateur_FIN':'SC'];
+C:ConsolidateChildren('Plan_Compte');
+
+#EndRegion
+
+#Region *** Rule_6:Indicaeur SB Step3.2
+# On force les consolidations les rubriques (niveau Conso) non concernés par les retraitement SB
+['Vision_Temps':'Vision_Temps':'CUMUL','Indicateur_FIN':'Indicateur_FIN':'SB'] =   N:['Indicateur_FIN':'Indicateur_FIN':'SC'];
+C:ConsolidateChildren('Plan_Compte');
+
+#EndRegion
+
+#Region *** Rule_7:Version R_AJU_Calc Gestion des retraiement TVA
+# On gérère les exception
+
+['Version':'Version':'R_AJU_Calc','Indicateur_FIN':'Indicateur_FIN':'S','Plan_Compte':'Plan_Compte':'73161000'] = N: STET;
+['Version':'Version':'R_AJU_Calc','Indicateur_FIN':'Indicateur_FIN':'S','Plan_Compte':'Plan_Compte':'74180200'] = N: STET;
+
+#EndRegion
+
+#Region *** Rule_8:Version R_AJU_Calc Gestion des retraiement TVA Produits
+# On applique 5.5% pour les Comptes dont le Parents est CA_PRODUITS_GF_030
+['Version':'Version':'R_AJU_Calc','Indicateur_FIN':'Indicateur_FIN':'S'] = N: if(ELISANC( 'Plan_Compte', 'CA_PRODUITS_GF_030', !Plan_Compte )=1,['Version':'Version':'R_SYS']*0.055,CONTINUE);
+
+# On applique 5.5% pour les Comptes dont le Parents 
+['Version':'Version':'R_AJU_Calc','Indicateur_FIN':'Indicateur_FIN':'S'] = N: if(subst(!Plan_Compte,1,2) @='74',['Version':'Version':'R_SYS']*0.055,CONTINUE);
+
+#EndRegion;
+
+#Region *** Rule_9:Version R_AJU_Calc Gestion des retraiement TVA Charges
+# On affecte en négatif le total des produits en charges
+# Charge_TVA étant un élément technique de niveau0 de la dimension compte.
+
+['Version':'Version':'R_AJU_Calc','Indicateur_FIN':'Indicateur_FIN':'S','Plan_Compte':'Plan_Compte':'Charge_TVA'] = N: ['Version':'Version':'R_AJU_Calc','Plan_Compte':'Plan_Compte':'Produits']*-1;
+#EndRegion
+
+    
+FEEDERS;
+
+
+#Region SB 
+# Feeders liés aux Rules 1,2,3,4,5,6
+# Dépendant du processus alimentant le Z_Flag : ADM_CALC_FIN_BUD_Reel_Reporting_Step3_Z_Flag
+  
+['Indicateur_FIN':'Indicateur_FIN':'Z_Flag'] => ['Indicateur_FIN':'Indicateur_FIN':'SB'];
+
+#EndRegion
+
+# Region Version R_AJU_Calc
+# Feeders Général pour alimenter la Version R_AJU_Calc
+# Feeders liés aux Rules 7,8
+
+  ['Version':'Version':'R_SYS','Indicateur_FIN':'Indicateur_FIN':'S']=>['Version':'Version':'R_AJU_Calc'];
+
+#EndRegion
+
+# Region Version R_AJU_Calc
+# Feeders Spécifiques pour alimenter l'élement technique compte TVA 
+# Feeders liés à Rule 9
+
+['Version':'Version':'R_AJU_Calc','Plan_Compte':'Plan_Compte':'Produits','Indicateur_FIN':'Indicateur_FIN':'S']=>['Plan_Compte':'Charge_TVA'];
+
+#EndRegion
+
+
+
+
+
+  
+
+
+
+
+

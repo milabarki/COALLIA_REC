@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Centre_Profit_Tout",
+	"Alias":"Libelle",
+	"Expression":"TM1IGNORE_BADTUPLES {DRILLDOWNMEMBER({[Centre_Profit].[Centre_Profit].[Total_Centre_Profit]} , {[Centre_Profit].[Centre_Profit].[Total_Centre_Profit]} , RECURSIVE)}"
+}

@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Indicateur_FIN",
+	"Hierarchies@Code.links":
+	[
+		"Indicateur_FIN.hierarchies/Indicateur_FIN.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Indicateur_FIN')/Hierarchies('Indicateur_FIN')"
+	}
+}

@@ -1,0 +1,28 @@
+{
+	"@type":"Cube",
+	"Name":"EMP_Reel_Source",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Version')"
+		},
+		{
+			"@id":"Dimensions('Annee')"
+		},
+		{
+			"@id":"Dimensions('Centre_Profit')"
+		},
+		{
+			"@id":"Dimensions('Num_Fiche')"
+		},
+		{
+			"@id":"Dimensions('Indicateur_EMP')"
+		}
+	],
+	"Rules@Code.link":"EMP_Reel_Source.rules",
+	"Views@Code.links":
+	[
+		"EMP_Reel_Source.views/ActiveForm.json",
+		"EMP_Reel_Source.views/Default.json"
+	]
+}
