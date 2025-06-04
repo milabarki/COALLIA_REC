@@ -1,0 +1,10 @@
+{
+	"@type":"Subset",
+	"Name":"}Temp_Source_View_FIN_BUD_Saisie_mathieu.botquin@datatilt.fr_ADM_FIN_BUD_Reel_Reporting_Data_Loading_From_FIN_BUD_Saisie",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Version')/Hierarchies('Version')/Elements('B_DEF')"
+		}
+	]
+}

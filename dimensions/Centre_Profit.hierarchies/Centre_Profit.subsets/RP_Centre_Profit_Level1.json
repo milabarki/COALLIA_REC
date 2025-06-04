@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Centre_Profit_Level1",
+	"Alias":"Libelle",
+	"Expression":"TM1IGNORE_BADTUPLES {ORDER({FILTER(DISTINCT(DESCENDANTS([Centre_Profit].[Centre_Profit].[Total_Centre_Profit_COALLIA])) , (STRTOVALUE([Centre_Profit].[Centre_Profit].CURRENTMEMBER.PROPERTIES(\"LEVEL_NUMBER\")) = 2)),[Centre_Profit].[Centre_Profit].[Total_Centre_Profit]} , IIF([Centre_Profit].[Centre_Profit].CURRENTMEMBER.PROPERTIES(\"Libelle\")=\"\", [Centre_Profit].[Centre_Profit].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Centre_Profit].[Centre_Profit].CURRENTMEMBER.PROPERTIES(\"Libelle\")) , ASC)}"
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Annee_Ref_Admin",
+	"Alias":"MEMBER_NAME",
+	"Expression":"TM1IGNORE_BADTUPLES {STRTOMEMBER(\"[Annee_Reference].[Annee_Reference].[\" + [z_Admin_param].([Annee_Budg_N+1],[STR_VAR1]) + \"]\")}"
+}
