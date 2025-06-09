@@ -1,6 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"RP_Num_Fiche_Level0",
-	"Alias":"MEMBER_NAME",
-	"Expression":"TM1IGNORE_BADTUPLES {{TM1FILTERBYLEVEL(TM1SUBSETALL([Num_Fiche].[Num_Fiche]) , 0)}}"
-}
