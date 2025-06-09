@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Z_TEST_Dim",
+	"Hierarchies@Code.links":
+	[
+		"Z_TEST_Dim.hierarchies/Z_TEST_Dim.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Z_TEST_Dim')/Hierarchies('Z_TEST_Dim')"
+	}
+}
