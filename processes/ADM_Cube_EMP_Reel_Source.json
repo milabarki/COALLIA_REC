@@ -1,0 +1,15 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Cube_EMP_Reel_Source",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Cube_EMP_Reel_Source.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "1745418307000",
+	"UIData": "_ParameterConstraints=e30=\f",
+	"VariablesUIData": []
+}

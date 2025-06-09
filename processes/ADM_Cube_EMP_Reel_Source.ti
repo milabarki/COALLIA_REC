@@ -1,0 +1,37 @@
+#region Prolog
+
+#================================================================================================== 
+# Processus description: 
+#		Création du cube "EMP_Reel_Source"
+#
+# Processus versions:
+#           - 1.0 - 23/04/2025 - LMA-Datatilt: Initialisation du processus
+# 
+# Template versions:
+#           - 1.0 - JJ/MM/YYYY
+# ==================================================================================================
+
+#Region ******************************* Définition des variables *************************************
+
+# -- Nom du Cube
+vCubeName = 'EMP_Reel_Source';
+
+# -- Nom des Dimensions
+vDim1 = 'Version';
+vDim2 = 'Annee';
+vDim3 = 'Centre_Profit';
+vDim4 = 'Num_Fiche';
+vDim5 = 'Indicateur_EMP';
+
+#EndRegion **************************************************************************************
+
+#Region ******************************* Création du cube *************************************
+
+If ( CubeExists( vCubeName ) = 1);
+    CubeDestroy( vCubeName );
+Endif;
+CubeCreate( vCubeName, vDim1, vDim2, vDim3, vDim4, vDim5 );
+
+#EndRegion **************************************************************************************
+
+#endregion
