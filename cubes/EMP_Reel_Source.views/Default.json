@@ -1,0 +1,29 @@
+{
+	"@type":"MDXView",
+	"Name":"Default",
+	"MDX@Code.link":"Default.mdx",
+	"Meta": {
+		"Aliases": {
+			"[Centre_Profit].[Centre_Profit]": "MEMBER_NAME"
+		},
+		"ExpandAboves": {
+			"[Centre_Profit].[Centre_Profit]": false,
+			"[Indicateur_EMP].[Indicateur_EMP]": false,
+			"[Version].[Version]": false,
+			"[Num_Fiche].[Num_Fiche]": false,
+			"[Annee].[Annee]": false
+		},
+		"ContextSets": {
+			"[Centre_Profit].[Centre_Profit]": {
+				"SubsetName": "Total+Niveau0",
+				"IsPublic": true
+			},
+			"[Version].[Version]": {
+				"Expression": "{[Version].[Version].MEMBERS}"
+			},
+			"[Annee].[Annee]": {
+				"Expression": "{[Annee].[Annee].MEMBERS}"
+			}
+		}
+	}
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Admin_Annee_Hyp",
+	"Alias":"MEMBER_NAME",
+	"Expression":"TM1IGNORE_BADTUPLES {FILTER(FILTER(TM1FILTERBYLEVEL(TM1SUBSETALL([Annee].[Annee]) , 0) , (IIF([Annee].[Annee].CURRENTMEMBER.PROPERTIES(\"Annee_Num\") = \"\" , 0.0 , STRTOVALUE([Annee].[Annee].CURRENTMEMBER.PROPERTIES(\"Annee_Num\"))) >= [z_Admin_param].([z_Admin_param].[Annee_Budg_N+1],[z_Admin_Valeur].[STR_VAR1]))) , (IIF([Annee].[Annee].CURRENTMEMBER.PROPERTIES(\"Annee_Num\") = \"\" , 0.0 , STRTOVALUE([Annee].[Annee].CURRENTMEMBER.PROPERTIES(\"Annee_Num\"))) <= ((([z_Admin_param].([z_Admin_param].[Annee_Budg_N+1],[z_Admin_Valeur].[STR_VAR1])) + 6))))}"
+}
