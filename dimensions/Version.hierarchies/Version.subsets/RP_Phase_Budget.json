@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Phase_Budget",
+	"Alias":"Libelle",
+	"Expression":"TM1IGNORE_BADTUPLES {TM1FILTERBYPATTERN(TM1SubsetAll([Version].[Version]),\"*B_*\",\"MEMBER_NAME\")}"
+}
