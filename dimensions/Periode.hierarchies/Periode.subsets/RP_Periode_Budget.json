@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Periode_Budget",
+	"Alias":"MEMBER_NAME",
+	"Expression":"TM1IGNORE_BADTUPLES {FILTER(FILTER(TM1FILTERBYLEVEL(TM1SUBSETALL([Periode].[Periode]) , 0) , (IIF([Periode].[Periode].CURRENTMEMBER.PROPERTIES(\"Annee\") = \"\" , 0.0 , STRTOVALUE([Periode].[Periode].CURRENTMEMBER.PROPERTIES(\"Annee\"))) >= [z_Admin_param].([z_Admin_param].[Annee_Budg_N+1],[z_Admin_Valeur].[STR_VAR1]))) , (IIF([Periode].[Periode].CURRENTMEMBER.PROPERTIES(\"Annee\") = \"\" , 0.0 , STRTOVALUE([Periode].[Periode].CURRENTMEMBER.PROPERTIES(\"Annee\"))) <= ((((([z_Admin_param].([z_Admin_param].[Annee_Budg_N+1],[z_Admin_Valeur].[STR_VAR1])) + 6))))))}"
+}

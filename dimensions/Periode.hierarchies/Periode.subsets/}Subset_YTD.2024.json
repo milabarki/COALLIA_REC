@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"}Subset_YTD.2024",
+	"Alias":"MEMBER_NAME",
+	"Expression":"TM1IGNORE_BADTUPLES {{[Periode].[Periode].[2024.01], [Periode].[Periode].[2024.02], [Periode].[Periode].[2024.03], [Periode].[Periode].[2024.04], [Periode].[Periode].[2024.05], [Periode].[Periode].[2024.06], [Periode].[Periode].[2024.07], [Periode].[Periode].[2024.08], [Periode].[Periode].[2024.09], [Periode].[Periode].[2024.10], [Periode].[Periode].[2024.11], [Periode].[Periode].[2024.12]}}"
+}

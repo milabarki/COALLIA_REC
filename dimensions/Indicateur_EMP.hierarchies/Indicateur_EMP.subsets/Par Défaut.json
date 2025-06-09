@@ -1,5 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"Par Défaut",
-	"Expression":"{                                    {[Indicateur_EMP].[Indicateur_EMP].Levels(0).MEMBERS}                                    }"
-}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RP_Domaine_Fonctionnel_Tout",
+	"Alias":"Libelle",
+	"Expression":"TM1IGNORE_BADTUPLES {DRILLDOWNMEMBER({[Domaine_Fonctionnel].[Domaine_Fonctionnel].[Total_Domaine_Fonctionnel]} , {[Domaine_Fonctionnel].[Domaine_Fonctionnel].[Total_Domaine_Fonctionnel]} , RECURSIVE)}"
+}

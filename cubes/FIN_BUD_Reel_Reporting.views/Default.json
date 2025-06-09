@@ -1,0 +1,37 @@
+{
+	"@type":"MDXView",
+	"Name":"Default",
+	"MDX@Code.link":"Default.mdx",
+	"Meta": {
+		"Aliases": {
+			"[Periode].[Periode]": "MEMBER_NAME"
+		},
+		"ExpandAboves": {
+			"[Centre_Profit].[Centre_Profit]": false,
+			"[Periode].[Periode]": false,
+			"[Plan_Compte].[Plan_Compte]": false,
+			"[Domaine_Fonctionnel].[Domaine_Fonctionnel]": false,
+			"[Indicateur_FIN].[Indicateur_FIN]": false,
+			"[Version].[Version]": false,
+			"[Vision_Temps].[Vision_Temps]": false
+		},
+		"ContextSets": {
+			"[Centre_Profit].[Centre_Profit]": {
+				"Expression": "{{[Centre_Profit].[Centre_Profit].Levels(0).MEMBERS}}"
+			},
+			"[Periode].[Periode]": {
+				"SubsetName": "Default",
+				"IsPublic": true
+			},
+			"[Domaine_Fonctionnel].[Domaine_Fonctionnel]": {
+				"Expression": "{[Domaine_Fonctionnel].[Domaine_Fonctionnel].MEMBERS}"
+			},
+			"[Version].[Version]": {
+				"Expression": "{[Version].[Version].MEMBERS}"
+			},
+			"[Vision_Temps].[Vision_Temps]": {
+				"Expression": "{[Vision_Temps].[Vision_Temps].MEMBERS}"
+			}
+		}
+	}
+}

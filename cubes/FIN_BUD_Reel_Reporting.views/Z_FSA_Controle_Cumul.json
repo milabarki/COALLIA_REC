@@ -1,0 +1,33 @@
+{
+	"@type":"MDXView",
+	"Name":"Z_FSA_Controle_Cumul",
+	"MDX@Code.link":"Z_FSA_Controle_Cumul.mdx",
+	"Meta": {
+		"Aliases": {
+			"[Centre_Profit].[Centre_Profit]": "MEMBER_NAME",
+			"[Periode].[Periode]": "MEMBER_NAME",
+			"[Plan_Compte].[Plan_Compte]": "Code-Libelle"
+		},
+		"ExpandAboves": {
+			"[Centre_Profit].[Centre_Profit]": false,
+			"[Periode].[Periode]": false,
+			"[Plan_Compte].[Plan_Compte]": false,
+			"[Domaine_Fonctionnel].[Domaine_Fonctionnel]": false,
+			"[Indicateur_FIN].[Indicateur_FIN]": false,
+			"[Version].[Version]": false,
+			"[Vision_Temps].[Vision_Temps]": false
+		},
+		"ContextSets": {
+			"[Centre_Profit].[Centre_Profit]": {
+				"SubsetName": "Default",
+				"IsPublic": true
+			},
+			"[Domaine_Fonctionnel].[Domaine_Fonctionnel]": {
+				"Expression": "{[Domaine_Fonctionnel].[Domaine_Fonctionnel].MEMBERS}"
+			},
+			"[Version].[Version]": {
+				"Expression": "{[Version].[Version].MEMBERS}"
+			}
+		}
+	}
+}

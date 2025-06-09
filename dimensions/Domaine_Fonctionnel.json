@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Domaine_Fonctionnel",
+	"Hierarchies@Code.links":
+	[
+		"Domaine_Fonctionnel.hierarchies/Domaine_Fonctionnel.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Domaine_Fonctionnel')/Hierarchies('Domaine_Fonctionnel')"
+	}
+}

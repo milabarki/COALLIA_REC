@@ -1,5 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"Total+Niveau0",
-	"Expression":"{                                    {[Num_Fiche].[Num_Fiche].MEMBERS}                                    }"
-}

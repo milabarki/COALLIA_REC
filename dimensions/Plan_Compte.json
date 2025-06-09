@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Plan_Compte",
+	"Hierarchies@Code.links":
+	[
+		"Plan_Compte.hierarchies/Plan_Compte.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Plan_Compte')/Hierarchies('Plan_Compte')"
+	}
+}

@@ -1,5 +1,0 @@
-{
-	"@type":"Subset",
-	"Name":"Par Défaut",
-	"Expression":"{                                    {[Num_Fiche].[Num_Fiche].Levels(0).MEMBERS}                                    }"
-}
