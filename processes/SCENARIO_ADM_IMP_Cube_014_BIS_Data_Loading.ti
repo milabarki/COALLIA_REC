@@ -1,0 +1,275 @@
+#region Prolog
+
+IF( pLockObj @<> '' ) ;
+           SYNCHRONIZED( pLockObj ) ;
+ENDIF ;
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+###################################################################################
+# Process : SCENARIO_ADM_IMP_Cube_014_BIS_Data_Loading
+# Description : 014Bis_OPS_Global data loading from flat file
+# Created by : MBA-Datatilt
+# Date : 24/06/2025
+###################################################################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = '014Bis_OPS_Global';
+sCubeOthers = '098_Ratio_Others';
+sCubeRef = '012_OPS_Monthly_Input';
+
+vDim_Customer_Top = 'Customer_Top';
+vDim_Customer_Actual = 'Customer_Actual';
+vDim_Customer_Full = 'Customer_Full';
+vTotal='TOTAL_CUSTOMER';
+
+# -- TO Rate Cubes
+
+sCubeRate = '102_TO_Rate';
+sCubeRate2 = '103_TO_Rate_Detail';
+
+
+Nb_Lign = 0;
+
+# Import Path ---------------------------------------------------------------------------------------------------------------------------------
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Operational_Data\' ;
+zFile_Name = pOrganization| '_Export_File.csv';
+zFile_Import = zServer | zPath_Export | zFile_Name;
+
+
+# Technical Path -----------------------------------------------------------------------------------------------------------------------------
+zPath_Export_Tech = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Technical\' ;
+zFile_Folder_Tech = zServer | zPath_Export_Tech;
+
+# Reject Path --------------------------------------------------------------------------------------------------------------------------------
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+# View creation -----------------------------------------------------------------------------------------------------------------------------
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' | pOrganization| '_' |  GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name -------------------------------------------------------------------------------------------------------------------------
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension Scenario ------------------------------------------------------------------------------------------
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FCT_N' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'BUDGET_N+1' , 2 );
+IF ( pInit = 1 );
+	SubsetElementInsert( sDim , sSubsetNameTarget , 'ACT_N-1' , 3 );
+ENDIF;
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+#-- Subset creation on dimension Organization -------------------------------------------------------------------------------------
+sDim = 'Organization_Full';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+IF ( ELLEV( sDim , pOrganization ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetNameTarget , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetNameTarget , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+IF ( FileExists(zFile_Import )  = 0);
+	PROCESSBREAK;
+ENDIF;
+
+DatasourceNameForServer=zFile_Import;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# INSERT DIMENSION ELEMENT
+#================================================================
+
+#-- Insert element in Customer_Top dimension if it doesn't exist
+
+IF( DIMIX( vDim_Customer_Top , Customer ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Customer_Top , '' , Customer , 'n' );
+
+#-- Retrieve the HQ if it doesn't exist from Customer_Full dimension
+
+	zHQ = ELPAR( vDim_Customer_Full , Customer , 1 );
+	IF( zHQ @<> 'TOTAL_CUSTOMER' );
+		IF(  DIMIX( vDim_Customer_Top , Customer ) = 0 );
+			DIMENSIONELEMENTINSERT( vDim_Customer_Top , '' , zHQ , 'n' );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , zHQ , Customer , 1.000000 );
+		ELSE;
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , zHQ , Customer , 1.000000 );
+		ENDIF;
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , Customer , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# NUMBER OF ROW ( READ )
+# ==================================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+vDim = 'Organization_Full';
+IF(DIMIX(vDim , Organization) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | Organization | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+## Split other by products ##
+IF( Customer@='TOTAL_OTHERS' & SCAN('Flag', Indicator) = 0 );
+
+	### Indicator control ###
+	IF( SCAN('TEUS' , Indicator ) <> 0 );
+		IF( SCAN('FP' , Indicator ) <> 0 );
+			vIndRate = 'RATE_TEUS_Pilot';
+			vIndRef = Indicator;
+		ELSE;
+			vIndRate = 'RATE_TEUS';
+			vIndRef = Indicator;
+		ENDIF;
+	ELSE;	
+		IF( SCAN('CW' , Indicator ) <> 0 );
+			IF( SCAN('FP' , Indicator ) <> 0 );
+				vIndRate = 'RATE_CW_Pilot';
+				vIndRef = Indicator;
+			ELSE;
+				vIndRate = 'RATE_CW';
+				vIndRef = Indicator;
+			ENDIF;
+		ELSE;
+			vIndRate = 'RATE_'|Indicator;
+			vIndRef = Indicator;
+		ENDIF;
+	ENDIF;
+
+	vTotalRate = CELLGETN( sCubeOthers, 'TOTAL_PRODUCT' , Organization , vIndRate);
+
+	IF( vTotalRate = 0 );
+		CELLPUTN( Value , sCubeTarget , Currency, Scenario,Business_Dev, Months , Activity , 'XX' , Geo_From , Geo_To , Organization ,  Customer , Indicator);
+	ELSE;
+	
+                  sDim ='Product';
+	i = 1;
+	iMax = DIMSIZ(sDim);
+	WHILE ( i <= iMax );
+		vElt = DIMNM ( sDim , i);
+
+		IF( ELLEV( sDim , vElt ) =0 );
+			vProductWeight = CELLGETN( sCubeOthers,vElt , Organization , vIndRate);
+			CELLPUTN( Value * vProductWeight , sCubeTarget , Currency, Scenario,Business_Dev, Months , Activity , vElt , Geo_From , Geo_To , Organization ,  Customer , Indicator);
+		ENDIF;
+		i = i + 1;		
+	END;
+
+	ENDIF;
+ELSE;
+
+	CELLPUTN( Value , sCubeTarget , Currency, Scenario,Business_Dev, Months , Activity , Product , Geo_From , Geo_To , Organization ,  Customer , Indicator );
+
+ENDIF;
+
+# -- Load CA_CONSO ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  IF( Indicator @= 'TO' );
+
+	# -- If Cube 1 ('103_TO_Rate_Detail') has no data, retrieve data from Cube 2 ('102_TO_Rate')
+	vRate_Detail =  CELLGETN(sCubeRate2,  Scenario , Organization , Customer , Geo_From, Geo_To,  'STR_VAR_N');
+                                    
+	IF ( vRate_Detail <> 0);
+		vRate = vRate_Detail ;
+	Else;
+		vRate =CELLGETN(sCubeRate,  Scenario , Organization , 'STR_VAR_N');
+	ENDIF;
+	
+
+                  CELLPUTN( vRate* Value  , sCubeTarget , Currency, Scenario, Business_Dev, Months , Activity , Product , Geo_From , Geo_To , Organization ,  Customer , 'TO_CONSO' );
+                  CELLPUTN( Value-(vRate* Value)  , sCubeTarget , Currency, Scenario,Business_Dev, Months , Activity , Product , Geo_From , Geo_To , Organization ,  Customer , 'TO_G' );
+
+	
+                  CELLPUTN( vRate* Value  , sCubeTarget , Currency, Scenario,Business_Dev, 'TOTAL_VALUE' , Activity , Product , Geo_From , Geo_To , Organization ,  Customer , 'TO_CONSO' );
+                  CELLPUTN( Value-(vRate* Value)  , sCubeTarget , Currency, Scenario,Business_Dev,  'TOTAL_VALUE', Activity , Product , Geo_From , Geo_To , Organization ,  Customer , 'TO_G' );	
+
+
+      ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+ASCIIOUTPUT( zFile_Folder_Tech | pOrganization | sCubeTarget|'.txt' , pOrganization, GetProcessName() ) ;
+
+
+
+#endregion

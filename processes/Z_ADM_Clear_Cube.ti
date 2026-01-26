@@ -1,0 +1,50 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : Adm_Cube_Init
+# Description : Init Parameter Cube
+# Auteur : MBO
+# Date : 17/06/2016
+####################################
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+sCubeTarget1 = pCube;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName1 = 'Vue_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName1 = 'Subset_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget1 , sViewName1,1 );
+
+ViewZeroOut( sCubeTarget1 , sViewName1);
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion

@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"ARG_ADM_Dim_Calendar",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_ADM_Dim_Calendar.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"NEW_YEAR",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797032800027"
+}

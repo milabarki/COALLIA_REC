@@ -1,0 +1,22 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_ADM_EXP_Cube_012_to_Flat_MASTER",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"SCENARIO_ADM_EXP_Cube_012_to_Flat_MASTER.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703310004",
+	"VariablesUIData": []
+}

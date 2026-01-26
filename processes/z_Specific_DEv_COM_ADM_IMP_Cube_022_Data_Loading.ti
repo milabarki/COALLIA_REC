@@ -1,0 +1,112 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_022_Data_Loading
+# Description : Load Pilot data for specific OCC on DEV COM customer
+# Created by : MBO
+# Date : 16/01/2020
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeTarget = '022_Input_Pilot';
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# Import Path
+#zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+#zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Pilot_Data\Input_Pilot\' ;
+#zFile_Name = 'Input_Pilot_' |pOrganization| '_Export_File.csv';
+#zFile_Import = zServer | zPath_Export | zFile_Name;
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+
+#DatasourceNameForServer=zFile_Import;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+vDim = 'Organization_Pilot';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( 'Reject.txt' , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Customer_Actual';
+
+IF(DIMIX(vDim , CLI_CD) = 0);
+	sErrorMsg =CLI_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( 'Reject.txt' , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+
+SCENARIO_CD='BUDGET_N+1';
+COM_CD='XXXXXX';
+vTrade = 'XXXXX';
+LOC_LOAD_CD='XXXXX';
+LOC_OFFLOAD_CD='XXXXX';
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+vDim = 'Months';
+
+i = 1;
+iMax = SubsetGetSize ( vDim , 'Test_Month');
+WHILE( i <= iMax );
+	vMonth = SubsetGetElementName ( vDim , 'Test_Month' , i );
+	CELLPUTN( TEUS_NB/12 , sCubeTarget , SCENARIO_CD , vMonth ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'TEUS');
+
+	i = i + 1;
+END;
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion

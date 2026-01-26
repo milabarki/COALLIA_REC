@@ -1,0 +1,240 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : FORECAST_ADM_IMP_Cube_012_Data_Projection
+# Description : 012 GM projection FCT_N ( Aug -> Dec)
+# Created by : MBO
+# Date : 23/04/2018
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '012_OPS_Monthly_Input' ;
+sCubeTarget = sCubeSource;
+sCubeAllocation = '090_Allocation_key';
+sCubeParam = 'z01_Admin_Param';
+
+Nb_Actual_Month = CELLGETS(sCubeParam , 'NB_ACTUAL_MONTH' , 'STR_VAR_S');
+
+
+Ref_Period = 'YTD_0'|Nb_Actual_Month;  
+
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+
+sSourceScenario = 'FCT_N';
+sTargetScenario = sSourceScenario;
+sRefScenario = 'ACT_N-1';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+i = StringToNumber(Nb_Actual_Month)-3;
+iMax = StringToNumber(Nb_Actual_Month);
+WHILE ( i <= iMax );
+	vMonth = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+	SubsetElementInsert( sDim , sSubsetName , vMonth , 1 );
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+
+i = StringToNumber(Nb_Actual_Month)+1;
+iMax = 12;
+WHILE ( i <= iMax );
+	vMonth = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+	SubsetElementInsert( sDim , sSubsetNameTarget , vMonth , 1 );
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'GM' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- FORECAST LOADING
+# ==================================================================================
+
+
+vDim = 'Months';
+
+i = 1;
+iMax = SubsetGetSize ( vDim , sSubsetNameTarget ) ;
+WHILE( i <= iMax );
+	vMonth = SubsetGetElementName ( vDim , sSubsetNameTarget , i );
+	vRate = CELLGETN ( sCubeAllocation ,sRefScenario, vMonth, Activity , Geo_From ,Geo_To , Organization , 'RATE' ) ; 
+	vGlobalRate = CELLGETN ( sCubeAllocation ,sRefScenario, 'YTD_Dec', Activity , Geo_From ,Geo_To , Organization , 'RATE' ) - CELLGETN ( sCubeAllocation ,sRefScenario, Ref_Period, Activity , Geo_From ,Geo_To , Organization , 'RATE' ) ; 
+	vAverage = CELLGETN (sCubeSource , Currency , sSourceScenario ,  Ref_Period , Activity , Geo_From , Geo_To , Organization , Customer_Top, 'GM'  ) / 7;
+
+	IF ( vGlobalRate > 0 );
+		CELLPUTN( (vAverage * 5) * vRate    , sCubeSource ,Currency ,sSourceScenario,  vMonth,   Activity , Geo_From , Geo_To , Organization ,Customer_Top,'GM'  );
+	ELSE;
+		CELLPUTN( ROUNDP(vAverage , 0 ) , sCubeSource ,Currency ,sSourceScenario,  vMonth,   Activity , Geo_From , Geo_To , Organization , Customer_Top,'GM'  );
+	ENDIF;
+
+	i = i + 1;
+END;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

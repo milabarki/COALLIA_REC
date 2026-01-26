@@ -1,0 +1,160 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_098_Data_Loading
+# Description : 098 - Rate loading for FCT_N 
+# Created by : MBO
+# Date : 02/05/2019
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = '098_Ratio_Others';
+
+#Disable logging cube
+CUBESETLOGCHANGES( sCubeTarget , 0 );
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'Vue_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+sZone = CELLGETS( vCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+vDim = 'Organization_Full';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Product';
+IF(DIMIX(vDim , CLI_PRD_SPE_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | CLI_PRD_SPE_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+CELLPUTN( GM_LCY , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_GM');
+CELLPUTN( TO_LCY , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_TO');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_CW');
+CELLPUTN( TEUS_NB , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_TEUS');
+CELLPUTN( FT , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_FT');
+CELLPUTN( JF_NB , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_JobFile_Nb');
+CELLPUTN( CHG_WEIGHT_FP , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_CW_Pilot');
+CELLPUTN( TEUS_NB_FP , sCubeTarget,CLI_PRD_SPE_CD, ORG_OCC_CD, 'RATE_TEUS_Pilot');
+
+
+
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#Enable logging cube
+CUBESETLOGCHANGES( sCubeTarget , 1 );
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"$_ADM_Dim_Location_Subset_Test_MBA",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"$_ADM_Dim_Location_Subset_Test_MBA.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"VariablesUIData": []
+}

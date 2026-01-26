@@ -1,0 +1,42 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Assign_UserGroup_From_User_Infos",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Assign_UserGroup_From_User_Infos.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"}Clients",
+		"dataSourceNameForClient":"}Clients",
+		"subset":"All"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pUser",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"vUser",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033200025",
+	"VariablesUIData": [
+		"VarType=32\fColType=827\f"
+	]
+}

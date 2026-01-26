@@ -1,0 +1,25 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Group_Creation_From_Organization_STEP2",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Group_Creation_From_Organization_STEP2.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"Organization",
+		"dataSourceNameForClient":"Organization",
+		"subset":"All"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vOrganization",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703330003"
+}

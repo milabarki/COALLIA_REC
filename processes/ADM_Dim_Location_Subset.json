@@ -1,0 +1,14 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Location_Subset",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Dim_Location_Subset.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797032700024",
+	"VariablesUIData": []
+}

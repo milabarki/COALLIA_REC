@@ -1,0 +1,191 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_030_Growth_Calculation
+# Description : 030 data loading from actual and scenario
+# Created by : MBO
+# Date : 12/02/2018
+# 30/04/024 : Add USD currency
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '030_Argos_Budget' ;
+sCubeTarget = sCubeSource;
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'EUR' , 1 );
+# 30/04/024 : Add USD currency
+SubsetElementInsert( sDim , sSubsetName , 'USD' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Scenario
+sDim = 'ARGOS_Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'ACT_N' ,2 );
+SubsetElementInsert( sDim , sSubsetName , 'ACT_N-1' ,3 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators
+sDim = 'ARGOS_Indicators';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension  Indicators
+sDim = 'ARGOS_Indicators';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Growth' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+
+
+IF ( ARGOS_Scenario@='ACT_N');
+
+	vScenarioToCompare = 'BUDGET_N';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare, Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , ARGOS_Indicators );
+
+	vGrowth = Valeur - vValueToCompare ;
+	CELLPUTN( vGrowth , sCubeTarget , Currency , ARGOS_Scenario , Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , 'Growth' );
+
+ENDIF;
+
+
+IF ( ARGOS_Scenario@='BUDGET_N');
+
+	vScenarioToCompare = 'ACT_N';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare, Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , ARGOS_Indicators );
+
+	vGrowth = vValueToCompare - Valeur ;
+	CELLPUTN( vGrowth , sCubeTarget , Currency , vScenarioToCompare , Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , 'Growth' );
+
+ENDIF;
+
+IF ( ARGOS_Scenario@='ACT_N-1');
+
+	vScenarioToCompare = 'ACT_N';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare, Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , ARGOS_Indicators );
+
+	vGrowth = vValueToCompare-Valeur ;
+	CELLPUTN( vGrowth , sCubeTarget , Currency , ARGOS_Scenario , Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , 'Growth' );
+
+ENDIF;
+
+
+IF ( ARGOS_Scenario@='ACT_N');
+
+	vScenarioToCompare = 'ACT_N-1';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare, Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , ARGOS_Indicators );
+
+	vGrowth = Valeur-vValueToCompare ;
+	CELLPUTN( vGrowth , sCubeTarget , Currency , vScenarioToCompare , Months  , ARGOS_Activity , ARGOS_Product , ARGOS_Tradelane , ARGOS_Organization ,  ARGOS_Customer , 'Growth' );
+
+ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

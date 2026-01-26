@@ -1,0 +1,55 @@
+{
+	"@type":"Process",
+	"Name":"YAL_ADM_IMP_103_TO_CAO_DETAIL",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"YAL_ADM_IMP_103_TO_CAO_DETAIL.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_PROD",
+		"dataSourceNameForClient":"RUBIKS_PROD",
+		"userName":"IUSR_RUBIKS",
+		"password":"aYxqP7AUbUEAmrpzyBn5",
+		"query":"SELECT\r\nORG_OCC_CD,\r\nCLI_CD, \r\nLOC_LOAD_SUBCONT_CD, \r\nLOC_OFFLOAD_SUBCONT_CD,\r\nPCT_TO_CONSO_DEV\r\nFROM [BUD].[FACT_RATIO_CONSO_DETAILS]"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"ORG_OCC_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"CLI_CD",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"LOC_LOAD_SUBCONT_CD",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"LOC_OFFLOAD_SUBCONT_CD",
+			"Type":"String",
+			"Position":4,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"PCT_TO_CONSO_DEV",
+			"Type":"Numeric",
+			"Position":5,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300025"
+}

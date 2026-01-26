@@ -1,0 +1,170 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : Adm_Cube_Init
+# Description : Init Parameter Cube
+# Auteur : MBO
+# Date : 11/04/2019
+####################################
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+sCubeTarget1 = '010_OPS_Init';
+sCubeTarget2 = '011_OPS_Yearly_Input';
+sCubeTarget3 = '012_OPS_Monthly_Input';
+sCubeTarget4 = '013_OPS_Monthly_Breakdown';
+sCubeTarget5 = '022_Input_Pilot';
+sCubeTarget6 = '080_Workflow';
+sCubeTarget7 = '081_Workflow_By_User';
+#sCubeTarget8 = '010_Guideline_Input';
+sCubeTarget9 = '014_OPS_Global';
+sCubeTarget10 = '015_OPS_Global_by_Tradelane';
+sCubeTarget11 = '016_OPS_Global_by_Pos';
+sCubeTarget12 = '017_OPS_Activity';
+sCubeTarget13 = '024_Global_Input_Pilot';
+sCubeTarget14 = '014Bis_OPS_Global';
+
+
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName1 = 'View_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName1 = 'Subset_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName2 = 'View_Target_Cube_' | sCubeTarget2 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName2 = 'Subset_Target_Cube_' | sCubeTarget2 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName3 = 'View_Target_Cube_' | sCubeTarget3 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName3 = 'Subset_Target_Cube_' | sCubeTarget3 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName4 = 'View_Target_Cube_' | sCubeTarget4 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName4 = 'Subset_Target_Cube_' | sCubeTarget4 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName5 = 'View_Target_Cube_' | sCubeTarget5 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName5 = 'Subset_Target_Cube_' | sCubeTarget5 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName6 = 'View_Target_Cube_' | sCubeTarget6 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName6 = 'Subset_Target_Cube_' | sCubeTarget6 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName7 = 'View_Target_Cube_' | sCubeTarget7 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName7 = 'Subset_Target_Cube_' | sCubeTarget7 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+#sViewName8 = 'View_Target_Cube_' | sCubeTarget8 | '_' | vTM1USER | '_' |   GetProcessName() ;
+#sSubsetName8 = 'Subset_Target_Cube_' | sCubeTarget8 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName9 = 'View_Target_Cube_' | sCubeTarget9 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName9 = 'Subset_Target_Cube_' | sCubeTarget9 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName10 = 'View_Target_Cube_' | sCubeTarget10 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName10 = 'Subset_Target_Cube_' | sCubeTarget10 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName11 = 'View_Target_Cube_' | sCubeTarget11 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName11 = 'Subset_Target_Cube_' | sCubeTarget11 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName12 = 'View_Target_Cube_' | sCubeTarget12 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName12 = 'Subset_Target_Cube_' | sCubeTarget12 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName13 = 'View_Target_Cube_' | sCubeTarget13 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName13 = 'Subset_Target_Cube_' | sCubeTarget13 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName14 = 'View_Target_Cube_' | sCubeTarget14 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName14 = 'Subset_Target_Cube_' | sCubeTarget14 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+
+ViewCreate( sCubeTarget1 , sViewName1,1 );
+ViewCreate( sCubeTarget2 , sViewName2,1 );
+ViewCreate( sCubeTarget3 , sViewName3,1 );
+ViewCreate( sCubeTarget4 , sViewName4,1 );
+ViewCreate( sCubeTarget5 , sViewName5,1 );
+ViewCreate( sCubeTarget6 , sViewName6,1 );
+ViewCreate( sCubeTarget7 , sViewName7,1 );
+#ViewCreate( sCubeTarget8 , sViewName8,1 );
+ViewCreate( sCubeTarget9 , sViewName9,1 );
+ViewCreate( sCubeTarget10 , sViewName10,1 );
+ViewCreate( sCubeTarget11 , sViewName11,1 );
+ViewCreate( sCubeTarget12 , sViewName12,1 );
+ViewCreate( sCubeTarget13 , sViewName13,1 );
+ViewCreate( sCubeTarget14 , sViewName14,1 );
+
+
+
+ViewZeroOut( sCubeTarget1 , sViewName1);
+ViewZeroOut( sCubeTarget2 , sViewName2 );
+ViewZeroOut( sCubeTarget3 , sViewName3 );
+ViewZeroOut( sCubeTarget4 , sViewName4 );
+ViewZeroOut( sCubeTarget5 , sViewName5 );
+ViewZeroOut( sCubeTarget6 , sViewName6 );
+ViewZeroOut( sCubeTarget7 , sViewName7 );
+#ViewZeroOut( sCubeTarget8 , sViewName8 );
+ViewZeroOut( sCubeTarget9 , sViewName9 );
+ViewZeroOut( sCubeTarget10 , sViewName10);
+ViewZeroOut( sCubeTarget11 , sViewName11 );
+ViewZeroOut( sCubeTarget12 , sViewName12 );
+ViewZeroOut( sCubeTarget13 , sViewName13 );
+ViewZeroOut( sCubeTarget14 , sViewName14 );
+
+# ==================================================================================
+# -- WORKFLOW INIT
+# ==================================================================================
+
+
+vDimTarget = ' Organization_pilot';
+i = 1;
+iMax = DIMSIZ ( vDimTarget ) ;
+WHILE( i <= iMax );
+	vElt = DIMNM ( vDimTarget ,  i );
+	CELLPUTS( 'Unlock' , sCubeTarget6 , 'BUDGET_N+1' ,'AIR', vElt , 'Availability');
+	CELLPUTS( 'Unlock' , sCubeTarget6 , 'BUDGET_N+1' ,'SEA', vElt , 'Availability');
+
+	IF(DIMIX('Organization',vElt ) <> 0 );
+		CELLPUTS( 'Unlock' , sCubeTarget6 , 'FCT_N' , 'OPS' , vElt , 'Availability');
+		CELLPUTS( 'Unlock' , sCubeTarget6 , 'BUDGET_N+1' ,'OPS', vElt , 'Availability');
+	ELSE;
+	# Lock specific PILOT perimeter 
+		IF( CELLISUPDATEABLE(sCubeTarget6 , 'FCT_N' , 'OPS' , vElt , 'Availability') = 1 );
+			CELLPUTS( 'Lock' , sCubeTarget6 , 'FCT_N' , 'OPS' , vElt , 'Availability');
+			CELLPUTS( 'Lock' , sCubeTarget6 , 'BUDGET_N+1' ,'OPS', vElt , 'Availability');
+		ENDIF;
+	ENDIF;
+
+	i = i +1; 
+END;
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#endregion

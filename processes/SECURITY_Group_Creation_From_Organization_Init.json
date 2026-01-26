@@ -1,0 +1,33 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Group_Creation_From_Organization_Init",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Group_Creation_From_Organization_Init.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"Organization_Init",
+		"dataSourceNameForClient":"Organization_Init",
+		"subset":"All"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"vOrganization",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703330000"
+}

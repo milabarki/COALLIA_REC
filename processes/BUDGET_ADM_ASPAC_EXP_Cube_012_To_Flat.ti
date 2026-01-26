@@ -1,0 +1,323 @@
+#region Prolog
+IF( pLockObj @<> '' ) ;
+           SYNCHRONIZED( pLockObj ) ;
+ENDIF ;
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#################################################################################################
+# -- Process : BUDGET_ADM_ASPAC_EXP_Cube_012_To_Flat
+# -- Description : 012 Data APAC export to flat file
+# -- Created by : MBA-Datatilt
+# --  Date : 04/07/2025
+#
+#################################################################################################
+
+
+# ================================================================================================
+# --  VARIABLES
+# ================================================================================================
+
+NbLigne = 1;
+
+vKey_Current = '';
+vKey_Previous = '';
+
+vScenario_Previous = '';
+vMonth_Previous = '';
+vGeoFrom_Previous = '';
+vGeoTo_Previous = '';
+vOrg_Previous = '';
+vAct_Previous = '';
+vCust_Previous = '';
+
+# Indicator Variables
+vGM_Value = '';
+vTO_Value = '';
+vCW_Value = '';
+vTeus_Value = '';
+vJB_Value = '';
+
+
+# -- Source Cube
+sCubeSource = '012_OPS_Monthly_Input' ;
+
+# -- Extract Path à revoir
+zPath_Export = 'Export/Budget_ASPAC';
+zFile_Export = zPath_Export |'RUBIKS_export_top_budget.csv';
+zFile_Export = 'RUBIKS_export_top_budget';
+
+# --Technical Path
+zPath_Export_Tech = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Technical\' ;
+zFile_Folder_Tech = zPath_Export_Tech;
+
+# -- User Name
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+# -- View source parametres
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |  GetProcessName() ;
+
+# ================================================================================================
+#-- Export txt parameters
+# ================================================================================================
+DatasourceASCIIQuoteCharacter = ' ';
+DatasourceASCIIDelimiter = char(09);
+DatasourceASCIIThousandSeparator='';
+DatasourceASCIIDecimalSeparator= '.';
+
+
+# ================================================================================================
+# -- SOURCE VIEW CREATION
+# ================================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+# -- Subset creation on dimension Scenario ------------------------------------------------------------------------------------------------------------------
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# -- Subset creation on dimension Currency ----------------------------------------------------------------------------------------------------------------------
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# -- Subset creation on dimension Organization -------------------------------------------------------------------------------------------------------------------
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+
+# ---------------- Organisations List ----------------------------------
+pOrg1 =  'V_RH260';
+pOrg2 = 'V_YH062';
+#pOrg2 = 'ER_E2973';
+pOrg3 = 'ER_E2035';
+pOrg4 = 'ER_E1522';
+pOrg5 = 'ER_E1523';
+pOrg6 = 'ER_U7755';
+
+# ---------------- Boucle sur chaque organisation ----------------
+i = 1;
+WHILE( i <= 6 );
+
+  # Current Orga
+  IF( i = 1 );
+    org = pOrg1;
+  ELSEIF( i = 2 );
+    org = pOrg2;
+  ELSEIF( i = 3 );
+    org = pOrg3;
+  ELSEIF( i = 4 );
+    org = pOrg4;
+  ELSEIF( i = 5 );
+    org = pOrg5;
+  ELSE;
+    org = pOrg6;
+  ENDIF;
+
+# -----------------------------------------------------------------------------
+IF( Dimix (sDim, org) <> 0);
+
+  IF ( ELLEV(sDim, org) = 0 );
+    SubsetElementInsert(sDim, sSubsetName, org, 1);
+  ELSE;
+    # Sinon, ajouter tous ses descendants
+    j = 1;
+    n = DIMSIZ(sDim);
+    WHILE( j <= n );
+      descendant = DIMNM(sDim, j);
+      IF( ELISANC(sDim, org, descendant) <> 0 );
+        SubsetElementInsert(sDim, sSubsetName, descendant, 1);
+      ENDIF;
+      j = j + 1;
+    END;
+  ENDIF;
+ENDIF;
+  i = i + 1;
+
+END;
+ 
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# -- Subset creation on dimension Indicators_Op ------------------------------------------------------------------------------------------------------------- 
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+SubsetElementInsert( sDim , sSubsetName , 'GM', 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TO', 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TOTAL_TEUS ', 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TOTAL_CW', 1 );
+SubsetElementInsert( sDim , sSubsetName , 'JobFile_Nb', 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ================================================================================================
+# -- DATASOURCE PARAMETERS
+# ================================================================================================
+
+# -- Update the view parameters ---------------------------------------------------------------------------------------------------------------------------------
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+# -- Assign the view to the process source --------------------------------------------------------------------------------------------------------------------
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+# ================================================================================================
+#-- Export txt parameters
+# ================================================================================================
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = ';';
+DatasourceASCIIThousandSeparator='';
+DatasourceASCIIDecimalSeparator= '.';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA EXPORT
+# ==================================================================================
+
+# Export File title -----------------------------------------------------------------------------------------------------------------------------
+IF(NbLigne = 1);
+       ASCIIOUTPUT( zFile_Export , 
+                                                             'SCENARIO_CD', 
+                                                             'MONTH_CD' , 
+                                                             'LOC_LOAD_SUBCONT_CD', 
+                                                             'LOC_OFFLOAD_SUBCONT_CD', 
+                                                             'ORG_OCC_CD', 
+                                                             'ACT_CD',
+                                                             'CLI_CD', 
+                                                             'GM_LCY' , 
+                                                             'TO_LCY',  
+                                                             'CHG_WEIGHT' , 
+                                                             'TEUS_NB' , 
+                                                             'JF_NB');
+        NbLigne = 2;
+EndIf;
+
+#-- Reconditionning value -----------------------------------------------------------------------------------------------------------------
+nVal = Value;
+nValArr = ROUNDP (nVal , 3 );
+sVal = numbertostring( nValArr );
+
+pos = SCAN( ',' , sVal);
+IF ( pos <> 0 );
+	sValEnt  = SUBST( sVal , 1 , pos-1);
+	sValDec = SUBST( sVal , pos+1 , LONG(sVal) );
+	sValExport = sValEnt | '.' | sValDec;
+ELSE;
+	sValExport = sVal;
+ENDIF;
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+vKey_Current = Scenario | Months | Geo_From | Geo_To | Organization | Activity | Customer_Top;
+
+IF (vKey_Current @<> vKey_Previous & vKey_Previous @<> '');
+
+vnMonth_Previous = ATTRS('Months', vMonth_Previous, 'Month_Num');
+
+IF (vnMonth_Previous @<> '');
+   IF (StringToNumber(vnMonth_Previous) < 10);
+      vsMonth_Previous = ATTRS('Months', vMonth_Previous, 'Month_Num');
+   ELSE;
+      vsMonth_Previous = ATTRS('Months', vMonth_Previous, 'Month_Num');
+   ENDIF;
+ENDIF;
+
+    # -- Save the previous data row
+    ASCIIOUTPUT( zFile_Export ,
+                                                       vScenario_Previous, 
+                                                       vsMonth_Previous,
+                                                       vGeoFrom_Previous,
+                                                       vGeoTo_Previous, 
+                                                       vOrg_Previous, 
+                                                       vAct_Previous, 
+                                                       vCust_Previous, 
+                                                       vGM_Value, 
+                                                       vTO_Value, 
+                                                       vCW_Value, 
+                                                       vTeus_Value, 
+                                                        vJB_Value);
+   
+   # Reset the values
+    vGM_Value = '';
+    vTO_Value = '';
+    vCW_Value = '';
+    vTeus_Value = '';
+    vJB_Value = '';
+
+ENDIF;
+
+# --  Update values based on the indicator -------------------------------------------------------------------------------------------------
+IF(Indicators_Op @= 'GM');
+    vGM_Value = sValExport;
+ELSEIF(Indicators_Op @= 'TO');
+    vTO_Value = sValExport;
+ELSEIF(Indicators_Op @= 'TOTAL_CW');
+    vCW_Value = sValExport;
+ELSEIF(Indicators_Op @= 'TOTAL_TEUS');
+    vTeus_Value = sValExport;
+ELSEIF(Indicators_Op @= 'JobFile_Nb');
+    vJB_Value = sValExport;
+ENDIF;
+
+# -- Save the keys for the next row ----------------------------------------------------------------------------------------------------------
+vKey_Previous = vKey_Current;
+vScenario_Previous = Scenario;
+vMonth_Previous = Months;
+vGeoFrom_Previous = Geo_From;
+vGeoTo_Previous = Geo_To;
+vOrg_Previous = Organization;
+vAct_Previous = Activity;
+vCust_Previous = Customer_Top;
+
+
+
+ 
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

@@ -1,0 +1,148 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+####################################
+# Process : ACTUAL_ADM_Cube_090_Key_Calculation_STEP1
+# Description : Copy data from 010_Input_Operational
+# Created by : MBO
+# Date : 09/06/2018
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+
+sCubeSource = '012_OPS_Monthly_Input' ;
+sCubeTarget = '090_Allocation_Key';
+
+sSourceScenario = 'ACT_N-1';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'Vue_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'Vue_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+CELLINCREMENTN ( Value, sCubeTarget , sSourceScenario , Months ,Activity ,  Geo_From , Geo_To , Organization , 'GM');
+ 
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

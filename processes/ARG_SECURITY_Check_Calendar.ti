@@ -1,0 +1,67 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#####################################
+# Project : RUBIKS_Flash
+# Process : ARG_SECURITY_Check_Calendar
+# Description : Check the loading period
+# Created by : MBO
+# Date : 23/11/2021
+#####################################
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+NbCount = 0 ;
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeTech = 'z11_Argos_Loading_Date';
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+## Empty calendar control
+
+vStartCalendar = CELLGETS( vCubeTech , TIMST(NOW , '\m')  , 'Start_Date');
+vEndCalendar = CELLGETS( vCubeTech , TIMST(NOW , '\m'), 'Closing_Date');
+
+IF (vStartCalendar@='' % vEndCalendar@='' );
+
+	ChoreError;
+
+ENDIF;
+
+## Date control
+
+vStartDate = ATTRS('ARGOS_Calendar' , CELLGETS( vCubeTech , TIMST(NOW , '\m')  , 'Start_Date'), 'DYN_Version');
+vEndDate = ATTRS('ARGOS_Calendar' , CELLGETS( vCubeTech , TIMST(NOW , '\m')  , 'Closing_Date'), 'DYN_Version');
+vNow = TIMST(NOW , '\Y-\m- \d');
+
+IF ( DAYNO( vNow ) > DAYNO( vEndDate ) % DAYNO( vNow ) < DAYNO( vStartDate ) );
+
+	ChoreError;
+
+ENDIF;
+
+
+#endregion

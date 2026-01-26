@@ -1,0 +1,14 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_}Clients_List",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM_Dim_}Clients_List.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797032800011",
+	"VariablesUIData": []
+}

@@ -1,0 +1,114 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_RP_Login_Generation
+# Description : Generate a login based on First&Last Name
+# Created by : MBO
+# Date : 14/12/2018
+####################################
+ 
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+
+sCube = 'z09_Temp_User_Management';
+sDimClient = '}Clients';
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+IF( pFirstName@='' % pLastName@='' );
+	PROCESSQUIT;
+ENDIF;
+
+
+## Login creation ##
+##############
+sFirstLetter =SUBST(pFirstName,1,1);
+
+
+sPos = SCAN(' ', pLastName); 
+IF ( sPos <> 0 );
+	sValBeg = SUBST( pLastName , 1 , sPos-1);
+	sValEnd = SUBST( pLastName , sPos+1 , LONG(pLastName) );
+	sValEndPart =LOWER( sValBeg | sValEnd );
+ELSE;
+	sValEndPart= LOWER( pLastName );
+ENDIF;
+
+sPos = SCAN('-', sValEndPart); 
+IF ( sPos <> 0 );
+	sValBeg = SUBST( sValEndPart , 1 , sPos-1);
+	sValEnd = SUBST( sValEndPart , sPos+1 , LONG(sValEndPart) );
+	sValEndPart =LOWER( sValBeg | sValEnd );
+ELSE;
+	sValEndPart= sValEndPart;
+ENDIF;
+
+sValExport= LOWER( sFirstLetter ) | LOWER( sValEndPart );
+
+sValExportTemp=sValExport;
+
+## Control if login already exists in  }Clients dimension ##
+######################################
+
+IF( DIMIX('}Clients', sValExport) <> 0 );
+	i =1;
+	iMax =5;
+	WHILE ( i<=iMax);
+		sValExportTemp =sValExport|NumberToString(i);
+		IF ( DIMIX('}Clients', sValExportTemp) <> 0);
+			i = i+1;
+		ELSE;
+			vLastNum = i;
+			i = 6;
+		ENDIF;	
+	END;
+ENDIF;
+
+
+## Control if login already exists in cube ##
+##############################
+
+k=1;
+kMax=50;
+WHILE ( k<= kMax );
+	vControl = CELLGETS( sCube, vTM1USER , NumberToString(k),'Login');
+	IF( vControl@= sValExportTemp );
+		vNb = NumberToString(vLastNum+1);
+		sValExportTemp= sValExport|vNb;
+		k=k+1;
+	ELSE;
+		k=k+1;
+	ENDIF;
+END;
+
+
+## Create login ##
+#############
+
+sValExport=sValExportTemp;
+
+CELLPUTS(sValExport , sCube ,vTM1USER,'Temp', 'Login');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

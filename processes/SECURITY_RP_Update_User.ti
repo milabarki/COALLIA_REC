@@ -1,0 +1,203 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_RP_Update_User
+# Description : Update user in table
+# Created by : MBO
+# Date : 22/02/2019
+####################################
+ 
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+
+sCubeSource = 'z09_Temp_User_Management';
+sCubeTarget ='z03_User_Infos';
+sDimClient = '}Clients';
+sDimParam ='z_Indicators_User_Param';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+
+# ==================================================================================
+# -- CONSISTENCY CHECK
+# ==================================================================================
+
+IF(pGroupCheck=0 );
+	PROCESSQUIT;
+ENDIF;
+
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , vTM1USER , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension z_Nb_User
+sDim = 'z_Nb_User';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , '0' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ==================================================================================
+# -- SPECIFIC SUBSET CREATION
+# ==================================================================================
+
+
+#-- Subset creation on dimension }Clients
+sDim = '}Clients';
+sSubsetName = 'Subset_Update_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+SubsetCreate( sDim , sSubsetName,1);
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+
+
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+IF(z_Indicators_User_Param@='Login_List');
+	SubsetElementInsert( sDim , sSubsetName , Value , 1 );
+	ITEMSKIP;
+ENDIF;
+
+
+vLogin = CELLGETS(sCubeSource, vTM1USER, z_Nb_User , 'Login_List');
+vDim='z_Indicators_User_Param';
+vType = ATTRS('z_Indicators_User_Param' , z_Indicators_User_Param , 'Type');
+
+IF (vType@='Boolean' % vType@='Access' );
+	Value = SUBST(Value , 1 , 1 );
+ENDIF;
+
+IF(vType@='Orga' );
+	Value = DimensionElementPrincipalName('Organization_Security', Value );
+ENDIF;
+
+
+CELLPUTS(Value , sCubeTarget ,  vLogin , z_Indicators_User_Param );
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+sViewName = 'View_Cube_' | sCubeSource | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW RESET
+# ==================================================================================
+
+
+# -- Cube view name
+ViewCreate( sCubeSource , sViewName,1);
+
+# -- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , vTM1USER , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension z_Nb_User
+sDim = 'z_Nb_User';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , '0' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+
+ViewZeroOut( sCubeSource , sViewName);
+
+# ==================================================================================
+# -- UPDATE APPLICATION SECURITY
+# ==================================================================================
+
+sDim = '}Clients';
+sSubsetName = 'Subset_Update_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+k = 1;
+kMax = SubsetGetSize ( sDim , sSubsetName ) ;
+WHILE( k <= kMax );
+	vLogin = SubsetGetElementName ( sDim , sSubsetName , k );
+	EXECUTEPROCESS('SECURITY_UserGroup_Clean', 'pUser' , vLogin );
+	EXECUTEPROCESS('SECURITY_Assign_UserGroup_From_User_Infos', 'pInit' , 0 , 'pUser' , vLogin );
+	EXECUTEPROCESS('ARG_SECURITY_Assign_UserGroup_From_User_Infos', 'pUser' , vLogin );
+	ATTRPUTS(vTM1USER, '}Clients', vLogin, 'Last Modification' );
+	EXECUTEPROCESS('ADM_Dim_}Clients_List');
+
+	k = k+ 1;
+END;
+
+
+
+#endregion

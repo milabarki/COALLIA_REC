@@ -1,0 +1,27 @@
+{
+	"@type":"Process",
+	"Name":"BUDGET_ADM_Cube_080_Check_Picklist",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"BUDGET_ADM_Cube_080_Check_Picklist.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pType",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenario",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797032900023"
+}

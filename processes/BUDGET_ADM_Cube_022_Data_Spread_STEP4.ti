@@ -1,0 +1,190 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : BUDGET_ADM_Cube_012_Data_Spread_STEP4
+# Description : 011 Data Spread only TEUS/CW
+# Created by : MBO
+# Date : 25/05/2021
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = 'z07_Conso_Spread' ;
+sCubeTarget = '022_Input_Pilot';
+
+
+IF(pType@='SEA');
+	vIndSource = 'FP_TEUS';
+	vIndTarget = 'TEUS';
+ELSE;
+	vIndSource = 'FP_CW';
+	vIndTarget = 'CW';
+ENDIF;
+
+sSourceScenario = 'BUDGET_N+1';
+sTargetScenario = sSourceScenario;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |pOrganization| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName,1);
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 & ELLEV( sDim, vElt )=0);
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Flag_Pilot_'|pType , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- MONTH SUBSET
+# ==================================================================================
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Jan' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Feb' , 2 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Mar' , 3 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Apr' , 4 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'May' , 5 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Jun' , 6 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Jul' , 7 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Aug' , 8 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Sep' , 9 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Oct' , 10 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Nov' , 11 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Dec' , 12 );
+
+
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+Scenario ='BUDGET_N+1';
+# ================================================================================
+# -- CUSTOMERS <>  OTHERS
+# ================================================================================
+IF( Customer_Top@<>'TOTAL_OTHERS');
+
+	vSourceValue = CELLGETN ( sCubeSource , Geo_From , Geo_To , Organization , Customer_Top , vIndSource );
+	vTargetValue = CELLGETN ( sCubeTarget , Scenario, 'TOTAL_YEAR', 'TOTAL_CARRIER' , 'TOTAL_TRADE',Geo_From , Geo_To , Organization , Customer_Top , vIndTarget );
+
+
+	IF ( vSourceValue <> 0 );	
+
+		vGMYTD = CELLGETN( sCubeTarget , Scenario, 'TOTAL_YEAR' ,'TOTAL_CARRIER' , 'TOTAL_TRADE',Geo_From , Geo_To , Organization , Customer_Top , vIndTarget);
+
+		### TARGET IS NULL ###
+		IF(vGMYTD = 0 % ( Geo_From@='SCONT_0'  & Geo_To@='SCONT_0'));
+			vDim2 = 'Months';
+			k = 1;
+			kMax = SubsetGetSize ( vDim2 , sSubsetNameTarget ) ;
+			WHILE( k <= kMax );
+				vMonth = SubsetGetElementName ( vDim2 , sSubsetNameTarget , k );
+				CELLINCREMENTN( (1/12) * vSourceValue , sCubeTarget ,Scenario ,vMonth ,'YYYYYY' , 'XXXXX', 'XXXXX' , 'XXXXX' , Organization , Customer_Top ,vIndTarget );
+				k= k + 1;	
+			END; 
+
+		ELSE;
+			### TARGET IS NOT NULL ###
+			CELLPUTPROPORTIONALSPREAD( vSourceValue , sCubeTarget , Scenario ,'TOTAL_YEAR' , 'TOTAL_CARRIER' , 'TOTAL_TRADE',Geo_From , Geo_To , Organization , Customer_Top ,vIndTarget );
+		ENDIF;
+
+	ENDIF;
+
+	### TARGET IS NOT NULL  BUT SOURCE IS NULL ###
+	IF ( vTargetValue <> 0 & vSourceValue=0 );
+			IF ( Geo_From@='SCONT_0'  & Geo_To@='SCONT_0');
+				ITEMSKIP;
+
+			ELSE;
+
+				EXECUTEPROCESS('BUDGET_ADM_Cube_022_Data_Spread_Zero' , 'pOrganization', Organization , 'pCustomer' , Customer_Top , 'pPOL' ,Geo_From , 'pPOD' , Geo_To , 'pIndicator' , vIndTarget );
+			ENDIF;
+
+	ENDIF;
+ENDIF;
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

@@ -1,0 +1,94 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Customer_Actual_Init_Other_Update_MASTER
+# Description : Init Customer_Actual and other hierachy 
+# Created by : MBO
+# Date : 06/07/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Customer_Actual_Init';
+
+
+# ==================================================================================
+# --  EXECUTE PROCESS
+# ==================================================================================
+
+EXECUTEPROCESS('ADM_Dim_Customer_Actual_Init_Other_Update_STEP1');
+EXECUTEPROCESS('ADM_Dim_Customer_Actual_Init_Other_Update_STEP2');
+EXECUTEPROCESS('ADM_Dim_Customer_Actual_Init_Other_Update_STEP3');
+EXECUTEPROCESS('ADM_Dim_Customer_Actual_Init_Other_Update_STEP4');
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+sMDX = '{ORDER({TM1FILTERBYLEVEL({Descendants({['|vDim|'].[TOTAL_CUSTOMER]})}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0,' ' );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+
+#sSub
+sSub = '}RP_List_'|vDim;
+sMDX = ' { EXCEPT( { DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "TOTAL_CUSTOMER")}, {['|vDim|'].[TOTAL_CUSTOMER]} ) }, { ['|vDim|'].[TOTAL_CUSTOMER] })  }';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSub );
+SUBSETCREATEBYMDX( sSub, sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSub,' ' );
+
+SubsetAliasSet( vDim , sSub , 'Label' );
+
+
+#sSub Known
+sMDX = '{ EXCEPT({ORDER({TM1FILTERBYLEVEL({Descendants({['|vDim|'].[TOTAL_CUSTOMER]})}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)} , { ['|vDim|'].[X-XXXX] }) }';
+sSubNiv0Known = '}RP_List_Level0_'|vDim|'_Known';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0Known );
+SUBSETCREATEBYMDX( sSubNiv0Known , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0Known,' ' );
+
+SubsetAliasSet( vDim , sSubNiv0Known , 'Label' );
+#endregion

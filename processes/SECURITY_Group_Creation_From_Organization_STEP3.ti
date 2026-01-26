@@ -1,0 +1,83 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_Group_Creation_From_Organization_STEP3
+# Description : Init Element Security Organization_ER
+# Created by : MBO
+# Date : 18/05/2018
+####################################
+
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sCubeSecu = '}ElementSecurity_Organization_ER';
+sDimOrga = 'Organization_ER';
+sDimOrga2 = 'Organization';
+sDimGroup = '}Groups';
+
+
+
+
+# ==================================================================================
+# -- SOURCE ADAPTATION TO TAKE SUBSET ALL AS A SOURCE (WORKS IN EVERY LANGUAGE)
+# ==================================================================================
+DataSourceNameForServer = sDimOrga;
+DataSourceNameForClient = sDimOrga;
+DataSourceType = 'SUBSET';
+DataSourceDimensionSubset = 'ALL';
+
+CubeClearData( sCubeSecu );
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- Send a READ to the cube for the Organization 
+# ==================================================================================
+
+sNiv = ELLEV( sDimOrga , vOrganization );
+
+
+IF( sNiv = 0 );
+	sGroupName = 'R_' | vOrganization ;
+	IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+		CELLPUTS( 'READ' , sCubeSecu , vOrganization , sGroupName );
+	ENDIF;
+
+ENDIF;
+
+
+nbOrga = DIMSIZ( sDimOrga2 );
+nCtr = 1;
+WHILE( nCtr <= nbOrga );
+	sOrga = DIMNM( sDimOrga2 , nCtr );
+	IF( ELISANC( sDimOrga2 ,  sOrga ,vOrganization ) = 1 );
+		sGroupName = 'R_' | sOrga ;
+		CELLPUTS( 'READ' , sCubeSecu , vOrganization , sGroupName );
+	ENDIF;
+	nCtr = nCtr + 1;
+END;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

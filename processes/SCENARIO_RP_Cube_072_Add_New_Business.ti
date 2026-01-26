@@ -1,0 +1,199 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project :  RUBIKS
+# Process : SCENARIO_RP_Cube_072_Add_New_Business
+# Description : 072_New_Business : Add new business from input screen
+# Created by : MBO
+# Date : 09/05/2018
+####################################
+
+IF ( pControl <> 0 );
+	PROCESSQUIT;
+ENDIF;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCube = '072_New_Business';
+sCubeRef = '022_Input_Pilot';
+sCube_Trade = '096_Trade';
+sCube_Trade_EXCP = '097_Trade_EXCP';
+sCube_WK = '081_Workflow_By_User';
+
+vDim_Loading = 'Loading_Location_Full';
+vDim_Offloading = 'Offloading_Location_Full';
+
+## Ownership
+IF( pStatus @<> 'N' );
+	PROCESSQUIT;
+ENDIF;
+
+zOrganization = DimensionElementPrincipalName( 'Organization_Pilot' , pOrganization );
+zCustomer = DimensionElementPrincipalName( 'Customer_Full' , pCustomer );
+zPOL = DimensionElementPrincipalName( vDim_Loading , pPOL );
+zPOD = DimensionElementPrincipalName( vDim_Offloading , pPOD );
+zCarrier = DimensionElementPrincipalName( 'Carrier' , pCarrier );
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+
+
+Nb_Rows= 0;
+
+# ==================================================================================
+# -- CONSISTENCY CHECK
+# ==================================================================================
+
+## -- Organization
+IF ( ELLEV( 'Organization_Pilot' , zOrganization ) <> 0  % zOrganization @= '' ) ;
+	PROCESSQUIT;
+ENDIF;
+
+
+## -- Customer
+IF ( ELLEV( 'Customer_Full' , zCustomer ) <> 0  % zCustomer @= '' );
+	PROCESSQUIT;
+ENDIF;
+
+
+# -- POL
+IF ( ELLEV( vDim_Loading , zPOL ) <> 0 % zPOL @= '' );
+	PROCESSQUIT;
+ENDIF;
+
+
+# -- POD
+IF ( ELLEV( vDim_Offloading , zPOD ) <> 0 % zPOD @= '' );
+	PROCESSQUIT;
+ENDIF;
+
+# -- Carrier
+IF ( ELLEV( 'Carrier' , zCarrier ) <> 0 );
+	PROCESSQUIT;
+ENDIF;
+
+
+
+# ==================================================================================
+# -- Nb Row Check
+# ==================================================================================
+
+
+vDim = 'Nb_Rows';
+i =1;
+iMax = DIMSIZ(vDim);
+
+WHILE ( i <= iMax );
+	vValue = CELLGETN(sCube , pScenario , 'TOTAL_VALUE' , pOrganization ,  NumberToString(i) ,zIndicator,  'Insert');
+	IF ( vValue = 0 );
+		NbRow = i;
+		i = iMax +1;
+	ELSE;
+		i = i + 1;
+	ENDIF;
+
+END;
+
+
+
+# ==================================================================================
+# -- Row insert
+# ==================================================================================
+
+
+# ==================================================================================
+# -- EXISTANT CHECK
+# ==================================================================================
+
+iControl = 0 ;
+
+## -- Customer
+IF ( DIMIX( 'Customer_Actual' , zCustomer ) = 0  );
+	iControl = 1 ;
+ENDIF;
+
+
+# -- POL
+IF ( DIMIX ( 'Loading_Location' , zPOL ) = 0 );
+	iControl = 1 ;
+ENDIF;
+
+
+# -- POD
+IF ( DIMIX ( 'Offloading_Location' , zPOD ) = 0 );
+	iControl = 1 ;
+ENDIF;
+
+
+
+# ==================================================================================
+# --TRANSCODING
+# ==================================================================================
+vTrade = CELLGETS( sCube_Trade_EXCP , pPOL , pPOD , 'STR_VAR_S' );
+
+IF( vTrade @= '');
+	vCountry_From = ELPAR( vDim_Loading ,  pPOL , 1 );
+	vCountry_To = ELPAR( vDim_Offloading ,  pPOD , 1 );
+	vTrade = CELLGETS( sCube_Trade , vCountry_From , vCountry_To , 'STR_VAR_S' );
+ENDIF;
+
+
+vDim = 'Trade';
+
+IF(DIMIX(vDim , vTrade) = 0);
+	vTrade = 'XXXXX';
+ENDIF;
+
+
+CELLPUTS( zCustomer, sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) , zIndicator,  'Customer');
+CELLPUTS( zPOL, sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) , zIndicator , 'POL');
+CELLPUTS( zPOD, sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) ,zIndicator ,  'POD');
+CELLPUTS( vTrade, sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) ,zIndicator,  'Trade');
+CELLPUTS( zCarrier , sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) ,zIndicator ,  'Carrier');
+CELLPUTN( 1 , sCube , pScenario , 'TOTAL_VALUE' , pOrganization , numbertostring(NbRow) ,  zIndicator ,  'Insert');
+
+##-- Check each months if data already exist
+vDim_Month ='Months';
+i=1;
+WHILE ( i <= 12 );
+	IF( LONG( numbertostring ( i ) ) =1 );
+		zMonth_Label = '0' | numbertostring ( i );
+	ELSEIF( LONG( numbertostring ( i ) ) =2 );
+		zMonth_Label = numbertostring ( i );
+	ENDIF;
+
+	zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+
+	##-- Copy Value from origin
+	IF ( iControl = 0 );
+		vValue = CELLGETN(  sCubeRef , pScenario, zMonth , zCarrier , vTrade , zPOL , zPOD , pOrganization , zCustomer , zIndicator );
+		CELLPUTN (vValue , sCube , pScenario , zMonth, pOrganization , numbertostring(NbRow) , zIndicator , zIndicator );
+	ENDIF;
+
+	i = i + 1;
+END;
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion

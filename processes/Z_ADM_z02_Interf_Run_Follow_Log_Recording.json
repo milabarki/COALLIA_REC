@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_z02_Interf_Run_Follow_Log_Recording",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_z02_Interf_Run_Follow_Log_Recording.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pProcess",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pNb_Lign",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pNb_Load",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pExecTime",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033400010"
+}

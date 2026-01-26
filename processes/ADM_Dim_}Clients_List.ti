@@ -1,0 +1,63 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_}Clients_List
+# Description : Update Subset 
+# Created by : MBO
+# Date : 21/12/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = '}Clients';
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+# Subset Niv0
+sSubsetName = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'] )}, 0)}, ['|vDim|'].CurrentMember.Properties("}TM1_DefaultDisplayValue"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubsetName, '' );
+
+
+SubsetAliasSet( vDim , sSubsetName , '}TM1_DefaultDisplayValue' );
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

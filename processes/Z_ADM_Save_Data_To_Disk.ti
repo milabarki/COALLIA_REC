@@ -1,0 +1,38 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : Z_ADM_Save_Data_To_Disk
+# Description : Application SAve
+# Author : MBO
+# Date : 15/09/2017
+####################################
+
+
+# ==================================================================================
+# --  DATA SAVE
+# ==================================================================================
+
+#-- Data save on Disk
+SaveDataAll;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

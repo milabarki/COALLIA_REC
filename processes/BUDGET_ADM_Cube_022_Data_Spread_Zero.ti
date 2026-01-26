@@ -1,0 +1,170 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : BUDGET_ADM_Cube_012_Data_Spread_Zero
+# Description : 012 Data Spread Zero
+# Created by : MBO
+# Date : 25/05/2021
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeSource = '022_Input_Pilot';
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <>  0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+vRandom = NUMBERTOSTRING( INT( RAND() *1000) );
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |vRandom | '_' | pOrganization| '_' | pCustomer | '_' | pPOL| '_' | pPOD | '_' | GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | vRandom | '_' | pOrganization | '_' |pCustomer | '_' | pPOL | '_' | pPOD | '_' |  GetProcessName() ;
+
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName,1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Budget_N+1' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Organization_Pilot
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Loading_Location
+sDim = 'Loading_Location';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElt = DIMNM ( sDim , i) ;
+	IF ( ELISANC ( sDim , pPOL, vElt ) <> 0 & ELLEV( sDim, vElt )=0);
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Offloading_Location
+sDim = 'Offloading_Location';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElt = DIMNM ( sDim , i) ;
+	IF ( ELISANC ( sDim , pPOD, vElt ) <> 0 & ELLEV( sDim, vElt )=0);
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Customer_Actual
+sDim = 'Customer_Actual';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+IF ( pCustomer@<>'TOTAL_OTHERS');
+	SubsetElementInsert( sDim , sSubsetName , pCustomer , 1 );
+ELSE;
+	vCustomerTarget = 'OTH_'|pOrganization;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , vCustomerTarget, vElt ) <> 0 & ELLEV(sDim , vElt )=0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+ViewZeroOut( sCubeSource, sViewName );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#endregion

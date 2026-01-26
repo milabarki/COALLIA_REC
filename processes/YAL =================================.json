@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"YAL =================================",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"YAL =================================.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797033300019"
+}

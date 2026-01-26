@@ -1,0 +1,160 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : SECURITY_ADM_IMP_Cube_z03_Data_Loading
+# Description : Load z03_User_Infos Cube
+# Created by : MBO
+# Date : 22/06/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+vDim = '}Clients';
+sCubeTarget = 'z03_User_Infos';
+sCubeParam = 'z01_Admin_Param';
+
+
+# Import Path
+zServer = CELLGETS('z01_Admin_Param' , 'SERVER_NAME' , 'STR_VAR_S');
+zPath_Import = CELLGETS('z01_Admin_Param' , 'REP_IMPORT_SECURITY' , 'STR_VAR_S');
+zFile_Name = 'Rubiks_User_Security.csv';
+zFile_Import = zServer | zPath_Import | zFile_Name;
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name_Reject = zProcess | '_Rejects_File.csv';
+zFile_Reject = zPath_Reject | zFile_Name_Reject;
+Reject = 0;
+
+IF ( FileExists(zFile_Import )  = 0);
+	sErrorMsg = 'Warning : File' | zFile_Name | ' does not exist. It cant be loaded'; 
+	ASCIIOUTPUT( zFile_Reject , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+IF( pInit = 1 );
+
+# -- Cube view name
+
+	ViewCreate( sCubeTarget , sViewNameTarget ,1);
+	ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+sZone = CELLGETS( sCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=zFile_Import;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+
+IF ( Reject <> 0 % Server@<> sZone);
+	ITEMSKIP;
+ENDIF;
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+IF(  DIMIX( vDim , Login ) = 0 );
+	AddClient( Login );
+ENDIF;
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+
+IF ( Reject <> 0 % Server@<> sZone);
+	ITEMSKIP;
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+
+CELLPUTS( First_Name , sCubeTarget , Login , 'First_Name' ); 
+CELLPUTS( Last_Name , sCubeTarget , Login , 'Last_Name' );
+
+CELLPUTS( IF(BO_Argos@='','N',BO_Argos) , sCubeTarget , Login , 'Argos' );
+CELLPUTS( IF(FO_Access@='','N',FO_Access) , sCubeTarget , Login , 'HFO' );
+CELLPUTS( IF(BO_Right@='','N',BO_Right) , sCubeTarget , Login , 'Operational' );
+CELLPUTS( IF(BO_Admin@='','N',BO_Admin) , sCubeTarget , Login , 'BO_Admin' );
+
+
+CELLPUTS( IF(MO_Air_Right@='', 'N',MO_Air_Right) , sCubeTarget , Login , 'Pilot_Air' );
+CELLPUTS( IF(MO_Sea_Right@='', 'N',MO_Sea_Right)  , sCubeTarget , Login , 'Pilot_Sea' );
+CELLPUTS( IF(MO_Admin@='', 'N',MO_Admin)  , sCubeTarget , Login , 'MO_Admin' );
+CELLPUTS( IF(User_Admin@='', 'N',User_Admin)  , sCubeTarget , Login , 'User_Admin' );
+
+
+CELLPUTS( Org_Code1 , sCubeTarget , Login , 'Organization_Security_1' );
+CELLPUTS( Org_Code2 , sCubeTarget , Login , 'Organization_Security_2' );
+CELLPUTS( Org_Code3 , sCubeTarget , Login , 'Organization_Security_3' );
+CELLPUTS( Org_Code4 , sCubeTarget , Login , 'Organization_Security_4' );
+CELLPUTS( Org_Code5 , sCubeTarget , Login , 'Organization_Security_5' );
+CELLPUTS( Org_Code6 , sCubeTarget , Login , 'Organization_Security_6' );
+CELLPUTS( Org_Code7 , sCubeTarget , Login , 'Organization_Security_7' );
+#CELLPUTS( Group8 , sCubeTarget , Login , 'Organization_Security_8' );
+#CELLPUTS( Group9 , sCubeTarget , Login , 'Organization_Security_9' );
+#CELLPUTS( Group10 , sCubeTarget , Login , 'Organization_Security_10' );
+
+CELLPUTS( Sales_Org_Code1 , sCubeTarget , Login , 'Sales_Security_1' );
+CELLPUTS( Sales_Org_Code2 , sCubeTarget , Login , 'Sales_Security_2' );
+CELLPUTS( Sales_Org_Code3 , sCubeTarget , Login , 'Sales_Security_3' );
+CELLPUTS( Sales_Org_Code4 , sCubeTarget , Login , 'Sales_Security_4' );
+CELLPUTS( Sales_Org_Code5 , sCubeTarget , Login , 'Sales_Security_5' );
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+#endregion

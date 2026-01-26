@@ -1,0 +1,49 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_RP_IMP_Cube_Data_Loading_MASTER
+# Description : BUDGET N+1 Data Import from 011 to 012/013
+# Created by : MBO
+# Date : 31/05/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sTargetScenario = 'BUDGET_N+1';
+
+# ==================================================================================
+# --  PROCESS CONTROL
+# ==================================================================================
+
+# Control
+IF ( pStatus @<> 'N');
+	PROCESSQUIT;
+ENDIF;
+
+EXECUTEPROCESS('Z_ADM_FLAG_SPREAD_BUDGET_N+1' , 'pOrganization', pOrganization);
+EXECUTEPROCESS('BUDGET_ADM_Cube_012_Data_Spread_STEP3' , 'pOrganization', pOrganization);
+EXECUTEPROCESS('BUDGET_ADM_Cube_012_Data_Spread_STEP1' , 'pOrganization', pOrganization);
+EXECUTEPROCESS('BUDGET_ADM_Cube_012_Data_Spread_STEP2' , 'pOrganization', pOrganization);
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

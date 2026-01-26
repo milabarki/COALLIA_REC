@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_RP_New_Business_Access",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SCENARIO_RP_New_Business_Access.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pStatus",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033200020"
+}

@@ -1,0 +1,126 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Activity_Log_Excl
+# Description : Add Activity Log Excl  
+# Created by : MBO
+# Date : 10/10/2019
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Activity';
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Ind';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+
+
+DIMENSIONELEMENTINSERT(vDim,'',ACT_LEVEL2_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',ACT_LEVEL1_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',ACT_RUBIKS_CD,'n');
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,ACT_LEVEL2_CD,ACT_LEVEL1_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,ACT_LEVEL1_CD,ACT_RUBIKS_CD,1.000000);
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+#endregion

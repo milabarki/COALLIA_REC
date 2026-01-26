@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Update_User_Alias",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"SECURITY_RP_Update_User_Alias.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pUser",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033300017"
+}

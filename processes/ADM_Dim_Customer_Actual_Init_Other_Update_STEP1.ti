@@ -1,0 +1,187 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Customer_Actual_Init_Other_Update_STEP1
+# Description : Init Customer_Actual 
+# Created by : MBO
+# Date : 06/07/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Customer_Actual_Init';
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+DIMENSIONDELETEALLELEMENTS(vDim);
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_CUSTOMER';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Product';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+
+IF(CLI_CD @= CLI_HQ_CD);
+
+
+	IF ( ELLEV('Customer_Full' , CLI_CD ) <> 0 );
+
+		DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+		DIMENSIONELEMENTINSERT(vDim,'', CLI_CD|'_X','n');
+		DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_CD,CLI_CD|'_X',1.000000);
+		DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_CD,1.000000);
+	ELSE;
+		DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+		DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_CD,1.000000);
+
+	ENDIF;
+
+ELSE;
+	DIMENSIONELEMENTINSERT(vDim,'',CLI_HQ_CD,'n');
+	DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+	DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_HQ_CD,1.000000);
+	DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_HQ_CD,CLI_CD,1.000000);
+
+	IF(CLI_HQ_CD@<>'1-8W2SOI');
+		DIMENSIONELEMENTINSERT(vDim,'', CLI_HQ_CD|'_X','n');
+		DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_HQ_CD,CLI_HQ_CD|'_X',1.000000);
+	ENDIF;
+
+ENDIF;
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Customer',vDim, vTotal , 'Label');
+
+IF(CLI_CD @= CLI_HQ_CD);
+
+	IF ( ELLEV('Customer_Full' , CLI_CD ) <> 0 );
+		ATTRPUTS(CLI_HQ_LB | ' (' | CLI_HQ_CD | ')',vDim, CLI_HQ_CD , 'Label');
+		ATTRPUTS(CLI_HQ_LB | '_X (' | CLI_HQ_CD | '_X)',vDim, CLI_HQ_CD|'_X' , 'Label');
+
+	ELSE;
+
+		ATTRPUTS(CLI_LB | ' (' | CLI_CD | ')',vDim, CLI_CD , 'Label');
+
+	ENDIF;
+
+
+ELSE;
+	ATTRPUTS(CLI_HQ_LB | ' (' | CLI_HQ_CD | ')',vDim, CLI_HQ_CD , 'Label');
+	ATTRPUTS(CLI_LB | ' (' | CLI_CD | ')',vDim, CLI_CD , 'Label');
+
+	IF(CLI_HQ_CD@<>'1-8W2SOI');
+		ATTRPUTS(CLI_HQ_LB | '_X (' | CLI_HQ_CD | '_X)',vDim, CLI_HQ_CD|'_X' , 'Label');
+	ENDIF;
+
+ENDIF;
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+#endregion

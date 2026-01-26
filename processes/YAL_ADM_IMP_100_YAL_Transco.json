@@ -1,0 +1,37 @@
+{
+	"@type":"Process",
+	"Name":"YAL_ADM_IMP_100_YAL_Transco",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"YAL_ADM_IMP_100_YAL_Transco.ti",
+	"DataSource":
+	{
+		"Type":"ASCII",
+		"dataSourceNameForServer":"D:/TM1DATA/RUBIKS/RUBIKS - Codes OCC en codes HERMES pour EUROPE.csv",
+		"dataSourceNameForClient":"D:\\TM1Data\\RUBIKS\\RUBIKS - Codes OCC en codes HERMES pour EUROPE.csv",
+		"asciiHeaderRecords":1,
+		"asciiQuoteCharacter":"\"",
+		"asciiDecimalSeparator":",",
+		"asciiThousandSeparator":" ",
+		"asciiDelimiterType":"Character",
+		"asciiDelimiterChar":";"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"ORG_OCC_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"CODE_HERMES",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300023"
+}

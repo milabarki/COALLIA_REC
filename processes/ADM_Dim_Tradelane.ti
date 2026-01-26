@@ -1,0 +1,164 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Tradelane
+# Description : Init Tradelane 
+# Created by : MBO
+# Date : 23/04/2018
+#####################################
+
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Tradelane';
+vDim_Geo_From = 'Geo_From';
+vDim_Geo_To = 'Geo_To';
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+vTotalTradelane='TOTAL_TRADELANE';
+
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+	DIMENSIONELEMENTINSERT(vDim,'',vTotalTradelane,'c');
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+nSize_Geo_From = DIMSIZ(vDim_Geo_From);
+cpt = 1;
+WHILE ( cpt <= nSize_Geo_From );
+
+	Elem_Geo_From = DIMNM( vDim_Geo_From , cpt );
+	IF( ELLEV( vDim_Geo_From , Elem_Geo_From ) = 0 );
+
+		nSize_Geo_To = DIMSIZ(vDim_Geo_To);
+		cpt1 = 1;
+
+		WHILE ( cpt1 <= nSize_Geo_To );
+
+			Elem_Geo_To = DIMNM( vDim_Geo_To , cpt1 );
+			IF( ELLEV( vDim_Geo_To , Elem_Geo_To ) = 0 );
+
+				Elem_Tradelane = Elem_Geo_From | SUBST( Elem_Geo_To , 6 , LONG( Elem_Geo_To ) );
+				DIMENSIONELEMENTINSERT(vDim,'',Elem_Tradelane ,'n');
+				DIMENSIONELEMENTCOMPONENTADD(vDim,vTotalTradelane,Elem_Tradelane,1.000000);
+
+			ENDIF;
+
+			cpt1 = cpt1 + 1;
+
+		END;
+
+	ENDIF;
+	cpt = cpt+1;
+
+END;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#================================================================
+# ATTRIBUTS
+#================================================================
+
+ATTRPUTS('Total Tradelane' , vDim , vTotalTradelane , 'Label');
+
+nSize_Geo_From = DIMSIZ(vDim_Geo_From);
+cpt = 1;
+WHILE ( cpt <= nSize_Geo_From );
+
+	Elem_Geo_From = DIMNM( vDim_Geo_From , cpt );
+	IF( ELLEV( vDim_Geo_From , Elem_Geo_From ) = 0 );
+
+		nSize_Geo_To = DIMSIZ(vDim_Geo_To);
+		cpt1 = 1;
+
+		WHILE ( cpt1 <= nSize_Geo_To );
+
+			Elem_Geo_To = DIMNM( vDim_Geo_To , cpt1 );
+			IF( ELLEV( vDim_Geo_To , Elem_Geo_To ) = 0 );
+
+				Elem_Tradelane = Elem_Geo_From | SUBST( Elem_Geo_To , 6 , LONG( Elem_Geo_To ) );
+				Label_Tradelane = ATTRS( vDim_Geo_From , Elem_Geo_From , 'Label' ) | ' - ' | ATTRS( vDim_Geo_To , Elem_Geo_To , 'Label' );
+				ATTRPUTS(Label_Tradelane , vDim , Elem_Tradelane , 'Label');
+
+			ENDIF;
+
+			cpt1 = cpt1 + 1;
+
+		END;
+
+	ENDIF;
+	cpt = cpt+1;
+
+END;
+
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+sMDX = '{TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0, '' );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+
+
+#endregion

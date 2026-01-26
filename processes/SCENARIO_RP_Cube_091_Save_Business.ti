@@ -1,0 +1,663 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : SCENARIO_RP_Cube_091_Save_Business
+# Description : 091_New_Business : Copy business for an oragnization in 010_Input_Operational and 020_Pilot cubes
+# Created by : MBO
+# Date :28/05/2019
+####################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '091_New_Business';
+sCubeTarget_011 = '011_OPS_Yearly_Input';
+sCubeTarget_022 = '022_Input_Pilot';
+
+vDim_Customer_Top = 'Customer_Top';
+vDim_Customer_Actual = 'Customer_Actual';
+vDim_Customer_Full = 'Customer_Full';
+vTotal='TOTAL_CUSTOMER';
+
+vDim_Load_Loc = 'Loading_Location';
+vDim_Off_Loc = 'Offloading_Location';
+
+vDim_Load_Loc_Full = 'Loading_Location_Full';
+vDim_Off_Loc_Full = 'Offloading_Location_Full';
+
+vDim_Activity = 'Activity';
+vDim_Month = 'Months';
+
+NbLign = 0;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Indicators_New_Business
+sDim = 'Indicators_New_Business';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Insert' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# --  ROW SUBSET INIT
+# ==================================================================================
+
+#-- Subset creation on dimension Nb_Rows
+sDim = 'Nb_Rows';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+
+zCustomer = CELLGETS( sCubeSource , Scenario ,  Organization , Nb_Rows , 'Customer' );
+zPOL = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'POL' );
+zPOD = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'POD' );
+
+#================================================================
+# INSERT DIMENSION ELEMENT
+#================================================================
+
+# Verifiy if customer is in OTHERS
+IF( DIMIX( vDim_Customer_Actual , zCustomer ) <> 0 & ELISANC(vDim_Customer_Actual ,  'OTH_'|Organization ,zCustomer ) <> 0 );
+	IF( ELPAR ( vDim_Customer_Full , zCustomer, 1 )@<>'TOTAL_CUSTOMER' ) ;  
+		zParent = ELPAR ( vDim_Customer_Full , zCustomer, 1 ) ;
+		IF ( ELISANC(vDim_Customer_Actual ,  'OTH_'|Organization ,zParent ) <> 0);
+			DimensionElementComponentDelete(vDim_Customer_Actual,  'OTH_'|Organization ,zParent);
+		ELSE;
+			DimensionElementComponentDelete(vDim_Customer_Actual,  'OTH_'|Organization , zCustomer);
+		ENDIF;
+	ELSE;
+		DimensionElementComponentDelete(vDim_Customer_Actual,  'OTH_'|Organization , zCustomer);
+	ENDIF;
+ENDIF;
+
+
+
+#-- Insert element in Customer_Top dimension if it doesn't exist
+
+IF( DIMIX( vDim_Customer_Top , zCustomer ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Customer_Top , '' , zCustomer , 'n' );
+
+#-- Retrieve the HQ if it doesn't exist from Customer_Full dimension
+
+	zHQ = ELPAR( vDim_Customer_Full , zCustomer , 1 );
+	IF( zHQ @<> 'TOTAL_CUSTOMER' );
+		IF(  DIMIX( vDim_Customer_Top , zCustomer ) = 0 );
+			DIMENSIONELEMENTINSERT( vDim_Customer_Top , '' , zHQ , 'n' );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , zHQ , zCustomer , 1.000000 );
+		ELSE;
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , zHQ , zCustomer , 1.000000 );
+		ENDIF;
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Top , vTotal , zCustomer , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+
+#-- Insert element in Customer_Actual dimension if it doesn't exist
+
+IF( DIMIX( vDim_Customer_Actual , zCustomer ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Customer_Actual , '' , zCustomer , 'n' );
+
+#-- Recovery of the HQ if it doesn't exist from Customer_Full dimension
+
+	zHQ = ELPAR( vDim_Customer_Full , zCustomer , 1 );
+	IF( zHQ @<> 'TOTAL_CUSTOMER' );
+		IF(  DIMIX( vDim_Customer_Actual , zCustomer ) = 0 );
+			DIMENSIONELEMENTINSERT( vDim_Customer_Actual , '' , zHQ , 'n' );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Actual , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Actual , zHQ , zCustomer , 1.000000 );
+		ELSE;
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Actual , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Actual , zHQ , zCustomer , 1.000000 );
+		ENDIF;
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Customer_Actual , vTotal , zCustomer , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+
+
+#-- Insert element in Loading_Location dimension if it doesn't exist
+
+IF( DIMIX( vDim_Load_Loc , zPOL ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zPOL , 'n' );
+
+#-- Recovery of the parent from Loading_Location_Full dimension
+
+	zLoc_Par1 = ELPAR( vDim_Load_Loc_Full , zPOL , 1 );
+	IF(  DIMIX( vDim_Load_Loc , zLoc_Par1 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zLoc_Par1 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par1 , zPOL , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par1 , zPOL , 1.000000 );
+	ENDIF;
+
+#-- Recovery of the level 2 hierarchy from Loading_Location_Full dimension
+
+	zLoc_Par2 = ELPAR( vDim_Load_Loc_Full , zLoc_Par1 , 1 );
+	IF(  DIMIX( vDim_Load_Loc , zLoc_Par2 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zLoc_Par2 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+
+
+#-- Insert element in Offloading_Location dimension if it doesn't exist
+
+IF( DIMIX( vDim_Off_Loc , zPOD ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zPOD , 'n' );
+
+#-- Recovery of the parent from Offloading_Location_Full dimension
+
+	zLoc_Par1 = ELPAR( vDim_Off_Loc_Full , zPOD , 1 );
+	IF(  DIMIX( vDim_Off_Loc , zLoc_Par1 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zLoc_Par1 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par1 , zPOD , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par1 , zPOD , 1.000000 );
+	ENDIF;
+
+#-- Recovery of the level 2 hierarchy from Offloading_Location_Full dimension
+
+	zLoc_Par2 = ELPAR( vDim_Off_Loc_Full , zLoc_Par1 , 1 );
+	IF(  DIMIX( vDim_Off_Loc , zLoc_Par2 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zLoc_Par2 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ENDIF;
+
+ENDIF;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+zCustomer = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'Customer' );
+zActivity = CELLGETS( sCubeSource , Scenario ,Organization , Nb_Rows , 'Activity' );
+zPOL = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'POL' );
+zPOD = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'POD' );
+zTrade = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'Trade' );
+zCarrier = CELLGETS( sCubeSource , Scenario , Organization , Nb_Rows , 'Carrier' );
+
+zIndicator = ATTRS('Activity',zActivity,'Ind');
+
+
+nGM = CELLGETN( sCubeSource , Scenario , Organization , Nb_Rows , 'GM' );
+nYield = CELLGETN( sCubeSource , Scenario ,  Organization , Nb_Rows , 'Yield' );
+nTO = IF(nYield<> 0  ,  nGM/nYield , 0 );
+nTEUS = CELLGETN( sCubeSource , Scenario ,  Organization , Nb_Rows , 'TEUS' );
+nCW = CELLGETN( sCubeSource , Scenario ,  Organization , Nb_Rows , 'CW' );
+nFT = CELLGETN( sCubeSource , Scenario , Organization , Nb_Rows , 'FT' );
+nJob = CELLGETN( sCubeSource , Scenario , Organization , Nb_Rows , 'Jobfile_Nb' );
+
+zFlag = CELLGETN( sCubeSource , Scenario , Organization , Nb_Rows , 'Flag' );
+
+
+# ==================================================================================
+# -- ATTRIBUTES
+# ==================================================================================
+
+#-- Customer dimensions attributes management
+
+#-- Product attribute
+
+zProduct = ATTRS( vDim_Customer_Top , zCustomer , 'Product' );
+IF( zProduct @= '' );
+	zProduct = ATTRS( vDim_Customer_Full , zCustomer , 'Product' );
+	ATTRPUTS( zProduct , vDim_Customer_Top , zCustomer , 'Product' );
+ENDIF;
+
+
+zProduct = ATTRS( vDim_Customer_Actual , zCustomer , 'Product' );
+IF( zProduct @= '' );
+	zProduct = ATTRS( vDim_Customer_Full , zCustomer , 'Product' );
+	ATTRPUTS( zProduct , vDim_Customer_Actual , zCustomer , 'Product' );
+ENDIF;
+
+#-- Label
+
+zCust_Top_Lab = ATTRS( vDim_Customer_Top , zCustomer , 'Label' );
+IF( zCust_Top_Lab @= '' );
+	zCust_Top_Lab = ATTRS( vDim_Customer_Full , zCustomer , 'Label' );
+	ATTRPUTS( zCust_Top_Lab , vDim_Customer_Top , zCustomer , 'Label' );
+ENDIF;
+
+zCust_Actual_Lab = ATTRS( vDim_Customer_Actual , zCustomer , 'Label' );
+IF( zCust_Actual_Lab @= '' );
+	zCust_Actual_Lab = ATTRS( vDim_Customer_Full , zCustomer , 'Label' );
+	ATTRPUTS( zCust_Actual_Lab , vDim_Customer_Actual , zCustomer , 'Label' );
+ENDIF;
+
+zCustomerParent = ELPAR(vDim_Customer_Top, zCustomer , 1) ;
+IF ( zCustomerParent@<>'TOTAL_CUSTOMER');
+
+	zCust_HQ_Lab = ATTRS( vDim_Customer_Top , zCustomerParent , 'Label' );
+	IF( zCust_HQ_Lab @= '' );
+		zCust_HQ_Lab = ATTRS( vDim_Customer_Full , zCustomerParent, 'Label' );
+		ATTRPUTS( zCust_HQ_Lab , vDim_Customer_Top , zCustomerParent , 'Label' );
+	ENDIF;
+
+	zCust_Actual_HQ_Lab = ATTRS( vDim_Customer_Actual , zCustomerParent , 'Label' );
+	IF( zCust_Actual_HQ_Lab @= '' );
+		zCust_Actual_HQ_Lab = ATTRS( vDim_Customer_Full , zCustomerParent , 'Label' );
+		ATTRPUTS( zCust_Actual_HQ_Lab , vDim_Customer_Actual , zCustomerParent , 'Label' );
+	ENDIF;
+
+ENDIF;
+
+
+#-- Location dimensions attributes management
+
+#-- SubContinent attribute
+
+zSubContinent = ATTRS( vDim_Load_Loc , zPOL , 'SubContinent' );
+IF( zSubContinent @= '' );
+	zSubContinent = ATTRS( vDim_Load_Loc_Full , zPOL , 'SubContinent' );
+	ATTRPUTS( zSubContinent , vDim_Load_Loc , zPOL , 'SubContinent' );
+ENDIF;
+
+
+zSubContinent = ATTRS( vDim_Off_Loc , zPOD , 'SubContinent' );
+IF( zSubContinent @= '' );
+	zSubContinent = ATTRS( vDim_Off_Loc_Full , zPOD , 'SubContinent' );
+	ATTRPUTS( zSubContinent , vDim_Off_Loc , zPOD , 'SubContinent' );
+ENDIF;
+
+#-- Label
+
+zLoad_Loc_Lab = ATTRS( vDim_Load_Loc , zPOL , 'Label' );
+IF( zLoad_Loc_Lab @= '' );
+	zLoad_Loc_Lab = ATTRS( vDim_Load_Loc_Full , zPOL , 'Label' );
+	ATTRPUTS( zLoad_Loc_Lab , vDim_Load_Loc , zPOL , 'Label' );
+ENDIF;
+
+zOff_Loc_Lab = ATTRS( vDim_Off_Loc , zPOD , 'Label' );
+IF( zOff_Loc_Lab @= '' );
+	zOff_Loc_Lab = ATTRS( vDim_Off_Loc_Full , zPOD , 'Label' );
+	ATTRPUTS( zOff_Loc_Lab , vDim_Off_Loc , zPOD , 'Label' );
+ENDIF;
+
+## 
+
+IF ( NbLign =0 );
+	ATTRPUTN( 0 , 'Organization',Organization , 'Nb_New_'|Scenario);
+ENDIF;
+
+vNbNEW = ATTRN('Organization', Organization ,'Nb_New_'|Scenario);
+ATTRPUTN( vNbNEW+1 , 'Organization',Organization , 'Nb_New_'|Scenario);
+
+NbLign=NbLign+1;
+
+# ==================================================================================
+# --  DATA CONTROL
+# ==================================================================================
+
+IF ( nGM=0 );
+	ITEMSKIP;
+ELSE;
+	IF(zIndicator@<>'NA');
+		vValue = nCW + nFT + nTEUS;
+		IF ( vValue = 0 );
+			ITEMSKIP;
+		ENDIF;
+	ENDIF;
+ENDIF;
+
+## Increase Nb Rows Subset
+sDim = 'Nb_Rows';
+SubsetElementInsert( sDim , sSubsetName , Nb_Rows  , 1 );
+
+
+
+# ==================================================================================
+# -- GET GEO VARIABLES
+# ==================================================================================
+
+zGeo_From = ATTRS( 'Loading_Location_Full' , zPOL , 'SubContinent' );
+zGeo_To = ATTRS( 'Offloading_Location_Full' , zPOD , 'SubContinent' );
+
+# ==================================================================================
+# -- LOADING OF TARGET CUBE
+# ==================================================================================
+
+### New Business Flag ###
+nNew = CELLGETN( sCubeSource , Scenario , Organization , Nb_Rows , 'Flag_New_Business' );
+CELLPUTN( nNew ,sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer  , 'Flag_New_Business' );
+
+
+#### Loading 011_OPS_Yearly_Input ####
+
+zInd = ATTRS( vDim_Activity , zActivity , 'Ind' );
+
+## TO and Yield calculation ##
+nOldTO = CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'TO' );
+nOldGM = CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' );
+
+## Copy Yield if cell is updateable or increment TO ##
+nNewYield = (nOldGM + nGM) \ (nOldTO + nTO) ;
+IF( CELLISUPDATEABLE( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Yield') <>0 );
+	CELLPUTN( nNewYield , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Yield' );
+ELSE;
+	CELLINCREMENTN( nTO , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'TO' );
+ENDIF;
+
+## Jobfile insertion ##
+CELLINCREMENTN( nJob , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Jobfile_Nb' );
+
+## Flag spread for monthlybreakdown ##
+CELLPUTN( 1 , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Flag_Spread' );
+
+IF( zInd @<> 'NA' );
+	IF ( CELLISUPDATEABLE( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' ) <> 0 );
+		CELLINCREMENTN( nGM , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' );
+	ENDIF;
+	IF( zInd @<> 'FT' );
+		zValue =  CELLGETN(sCubeSource , Scenario , Organization , Nb_Rows , zInd );
+		vValueGM = CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' ) + nGM;
+		IF ( zFlag<>1 ) ;
+			CELLINCREMENTN( zValue ,sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer  , 'OTH_' | zInd );
+		ELSE;
+			CELLINCREMENTN( zValue ,sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer  , 'FP_' | zInd );
+		ENDIF;
+		CELLPUTN( vValueGM\ CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer, 'TOTAL_'|zInd )*1000 , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer,  'GM_' | zInd | '_RATE' );
+	ELSE;
+		zValue = CELLGETN(sCubeSource , Scenario , Organization , Nb_Rows , zInd );
+		zValueGM = CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' )+nGM;
+		CELLINCREMENTN( zValue , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer  , zInd );
+		CELLPUTN( zValueGM \ CELLGETN( sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer, zInd )*1000 ,sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer,  'GM_' | zInd | '_RATE' );
+	ENDIF;
+ELSE;
+	CELLINCREMENTN( nGM , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'GM' );
+	CELLINCREMENTN( nCW , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'OTH_CW' );
+ENDIF;
+
+
+#### Loading 022_Input_Pilot ####
+
+IF ( zFlag=1 ) ;
+	## Flag for PILOT spread ##
+	IF( zInd @= 'TEUS');
+		CELLPUTN( 1 , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Flag_Pilot_Sea' );
+		pType='SEA';
+	ENDIF;
+
+	IF( zInd @= 'CW');
+		CELLPUTN( 1 , sCubeTarget_011 ,  'LCY' , Scenario ,  zActivity ,  zGeo_From , zGeo_To , Organization , zCustomer , 'Flag_Pilot_Air' );
+		pType='AIR';
+	ENDIF;
+
+	zValue =  CELLGETN(sCubeSource , Scenario , Organization , Nb_Rows , zInd );
+
+
+	IF( pScenario @= 'FCT_N' );
+
+		i=8;
+
+		WHILE ( i <= 12 );
+
+			IF( LONG( numbertostring ( i ) ) =1 );
+				zMonth_Label = '0' | numbertostring ( i );
+			ELSEIF( LONG( numbertostring ( i ) ) =2 );
+				zMonth_Label = numbertostring ( i );
+			ENDIF;
+
+			zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+			
+			zCalc = zValue/5;
+			CELLINCREMENTN ( zCalc , sCubeTarget_022 , Scenario , zMonth ,  zCarrier , zTrade ,zPOL , zPOD  , Organization , zCustomer  , zInd );
+
+			i=i+1;
+		END;
+
+	ENDIF;
+
+	IF( pScenario @= 'BUDGET_N+1' );
+
+		IF (nNew <> 0 );
+			vExistNC = CELLGETN (  sCubeTarget_022 , Scenario, 'TOTAL_YEAR'  ,'TOTAL_CARRIER' , 'TOTAL_TRADE' , 'TOTAL_LOC' , 'TOTAL_OFF_LOC' , Organization , zCustomer  , zInd );
+
+			IF( vExistNC = 0 );
+				CELLPUTN ( 1 ,  sCubeTarget_022 , Scenario, 'TOTAL_VALUE' , zCarrier , zTrade , zPOL , zPOD , Organization , zCustomer , 'New_Business_'|pType ); 
+			ENDIF;
+		ENDIF;
+
+		i=1;
+
+		WHILE ( i <= 12 );
+
+			IF( LONG( numbertostring ( i ) ) =1 );
+				zMonth_Label = '0' | numbertostring ( i );
+			ELSEIF( LONG( numbertostring ( i ) ) =2 );
+				zMonth_Label = numbertostring ( i );
+			ENDIF;
+
+			zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+
+			zCalc = zValue/12;
+			CELLINCREMENTN ( zCalc , sCubeTarget_022 , Scenario , zMonth ,  zCarrier , zTrade ,zPOL , zPOD  , Organization , zCustomer  , zInd );
+
+			i=i+1;
+		END;
+
+	ENDIF;
+
+ENDIF;
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+vDim = 'Customer_Top';
+# Subset Niv0
+sSubsetName = '}RP_List_Level0_Full_'|vDim;
+
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'] )}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubsetName, '' );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+# Subset Niv0
+sSubsetName = '}RP_List_Level0_'|vDim;
+
+sMDX = '{ORDER({{EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'] )}, 0)}, {['|vDim|'].[TOTAL_OTHERS] })}}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubsetName, '' );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+# Subset with HQ
+sSubsetName = '}RP_List_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' & vElt@<>'TOTAL_CUSTOMER'  & ELISPAR( vDim  , 'TOTAL_CUSTOMER' , vElt) <> 0 );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim ,sSubsetName , 'Label' );
+
+# Subset for context
+sSubsetName = '}RP_List_Context_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName  );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+# ==================================================================================
+# -- SOURCE VIEW CLEANING
+# ==================================================================================
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+#-- Subset creation on dimension Indicators_New_Business
+sDim = 'Indicators_New_Business';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+i = 1;
+iMax = DIMSIZ(sDim);
+WHILE( i <= iMax );
+	vElt = DIMNM( sDim , i);
+	SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	 i = i + 1;
+END;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+sDim = 'Nb_Rows';
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+ViewZeroOut( sCubeSource , sViewName );
+
+### Update Location Subset
+EXECUTEPROCESS('ADM_Dim_Location_Subset');
+#endregion

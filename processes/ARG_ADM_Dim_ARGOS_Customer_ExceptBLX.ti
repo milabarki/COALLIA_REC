@@ -1,0 +1,119 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : ARG_ADM_Dim_ARGOS_Customer_ExceptBLX
+# Description : Customer Subset creation
+# Created by : MBO
+# Date : 08/02/2018
+####################################
+
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+#-- Data Ligne
+Nb_Lign = 0;
+
+sDim = 'ARGOS_Customer';
+
+# Subset HQ without BLX and Bollore
+sSubsetName = '}RP_List_Except_BLX_'|sDim;
+
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName );
+ENDIF;
+
+
+# Subset HQ  with BLX and Bollore
+sExSubsetName = '}RP_List_With_BLX_'|sDim;
+
+IF( SubsetExists( sDim, sExSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sExSubsetName );
+ELSE;
+	SubsetCreate( sDim , sExSubsetName );
+ENDIF;
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Assign the view to the process source
+DatasourceNameForServer=sDim;
+DataSourceType = 'SUBSET';
+DatasourceDimensionSubset='}RP_List_ARGOS_Customer';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# -- NUMBER OF ROW ( READ )
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# -- Insert element in subset
+vCustomerLabel = ATTRS( sDim , vCustomer , 'Label' ) ;
+
+IF ( vCustomerLabel @= '' ) ;
+	vCustomer = vCustomer ;
+ELSE ;
+	vCustomer = vCustomerLabel ;
+ENDIF;
+
+# ==================================================================================
+# -- DATA CONTROL : Modif MBA-21/07/2025
+# ==================================================================================
+Reject = 0;
+sDim = 'ARGOS_Customer';
+
+IF(DIMIX(sDim , vCustomer ) = 0);
+              sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | vCustomer | ' does not exist in the dimension ' | sDim; 
+              ASCIIOUTPUT( zFile , sErrorMsg);
+              Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+              ITEMSKIP;
+ENDIF;
+
+#IF ( ELLEV ( sDim , vCustomer) = 1 );
+
+	IF ( SCAN ( 'BOLLOR', vCustomer) = 0 & SCAN ( 'BLX', vCustomer) = 0 ) ;
+		SubsetElementInsert( sDim , sSubsetName , vCustomer , 1 );
+	ELSE;
+		SubsetElementInsert( sDim , sExSubsetName , vCustomer , 1 );
+	ENDIF;
+#ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# Show Subset Alias By Default
+SubsetAliasSet( sDim , sSubsetName , 'Label' );
+SubsetAliasSet( sDim , sExSubsetName , 'Label' );
+
+#endregion

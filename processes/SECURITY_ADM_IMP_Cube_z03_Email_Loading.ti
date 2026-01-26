@@ -1,0 +1,95 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS_RF
+# Process : RF_SECURITY_ADM_IMP_Cube_z03_Email_Loading
+# Description : Load z03_User_Infos Cube
+# Created by : MBO
+# Date : 08/11/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+vDim = '}Clients';
+sCubeTarget = 'z03_User_Infos';
+
+# Import Path
+zServer = CELLGETS('z01_Admin_Param' , 'SERVER_NAME' , 'STR_VAR_S');
+zPath_Import = CELLGETS('z01_Admin_Param' , 'REP_IMPORT_SECURITY' , 'STR_VAR_S');
+zFile_Name = 'Rubiks_User_security.csv';
+#zFile_Import = zServer | zPath_Import | zFile_Name;
+zFile_Import = zServer |zPath_Import | zFile_Name;
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name_Reject = zProcess | '_Rejects_File.csv';
+zFile_Reject = zServer |zPath_Reject | zFile_Name_Reject;
+Reject = 0;
+
+IF ( FileExists(zFile_Import )  = 0);
+	sErrorMsg = 'Warning : File' | zFile_Name | ' does not exist. It cant be loaded'; 
+	ASCIIOUTPUT( zFile_Reject , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+	#ITEMSKIP;
+ENDIF;
+
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'Vue_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+DatasourceNameForServer=zFile_Import;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+IF( DIMIX(vDim , Login ) <> 0 );
+	CELLPUTS( Email , sCubeTarget , Login , 'Email' );
+ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+#endregion

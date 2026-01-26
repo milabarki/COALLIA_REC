@@ -1,0 +1,202 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_ADM_Cube_093_Ratio_Init
+# Description : Init GM vs UO & TO rate for BUDGET_N+1
+# Created by : MBO
+# Date : 18/05/2018
+# Update MBA 16/10/2025 : Add Currency (LCY) to the viewsource
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '011_OPS_Yearly_Input' ;
+sCubeTarget = '093_Ratio_GM';
+
+
+sSourceScenario = 'FCT_N';
+sTargetScenario = 'BUDGET_N+1';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+# -- Start Update MBA : 16/10/2025 
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+sCurrency = 'LCY';
+
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sCurrency , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+# -- End Update 
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , sTargetScenario , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+IF ( ELLEV( sDim , pOrganization ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetNameTarget , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetNameTarget , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- UO AND TO RATE  CALCULATION AND  LOADING
+# ==================================================================================
+
+
+vValueGM =  CELLGETN( sCubeSource ,Currency ,sSourceScenario, Activity , Geo_From , Geo_To , Organization ,Customer_Top, Indicators_Op );
+
+# GM consistency check
+IF ( vValueGM <= 0.001);
+	ITEMSKIP;
+ENDIF;
+
+
+sDim = 'Indicators_Op';
+sSubsetName = '}List_Ind';
+i =1 ;
+iMax = SubsetGetSize( sDim , sSubsetName );
+WHILE ( i <= iMax );
+	vElt = SubsetGetElementName ( sDim , sSubsetName, i );
+
+	# For each Op indicators , ratio calculation based on GM
+	vValueIndOP = CELLGETN( sCubeSource ,Currency ,sSourceScenario,  Activity , Geo_From , Geo_To , Organization ,Customer_Top, vElt);
+	IF ( vValueIndOP > 0 );
+		vRatioOP = vValueIndOP / vValueGM;
+		CELLPUTN(vRatioOP,  sCubeTarget , sTargetScenario ,  Activity , Geo_From , Geo_To , Organization ,Customer_Top, 'RATE_'|vElt);
+	ENDIF;
+
+	i = i + 1;
+END;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion

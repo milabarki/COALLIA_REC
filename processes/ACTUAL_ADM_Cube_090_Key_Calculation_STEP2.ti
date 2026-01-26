@@ -1,0 +1,185 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : ACTUAL_ADM_Cube_090_Key_Calculation_STEP2
+# Description : Allocation key based on ACT_N-1 5 or 6  last months
+# Created by : MBO
+# Date : 09/04/2018
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '090_Allocation_Key' ;
+sCubeTarget = '090_Allocation_Key';
+
+sSourceScenario = 'ACT_N-1';
+
+
+Ref_Period = 'YTD_0'|Nb_Actual_Month; 
+
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+i = StringToNumber(Nb_Actual_Month)+1;
+iMax = 12;
+WHILE ( i <= iMax );
+	vMonth = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+	SubsetElementInsert( sDim , sSubsetName , vMonth , 1 );
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Indicators_Rate
+sDim = 'Indicators_Rate';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+#-- Subset creation on dimension Indicators_Rate
+sDim = 'Indicators_Rate';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'RATE' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RATE CALCULATION
+# ==================================================================================
+
+vValueYear = CELLGETN ( sCubeSource ,sSourceScenario , 'YTD_Dec'  ,Activity ,  Geo_From , Geo_To , Organization , 'GM') -  CELLGETN ( sCubeSource ,sSourceScenario , Ref_Period ,Activity ,  Geo_From , Geo_To , Organization , 'GM');
+vValueMonth = CELLGETN ( sCubeSource , sSourceScenario , Months  ,Activity ,  Geo_From , Geo_To , Organization , 'GM');
+
+IF ( vValueYear > 0 );
+	vRate = vValueMonth \ vValueYear ;
+	CELLPUTN ( ROUNDP( vRate , 4), sCubeTarget , sSourceScenario , Months  ,Activity ,  Geo_From , Geo_To , Organization , 'RATE');
+ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

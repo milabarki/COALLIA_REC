@@ -1,0 +1,164 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : FORECAST_ADM_Cube_012_Data_Spread_OPTI_STEP1
+# Description : 012 Data Rate calculation
+# Created by : MBO
+# Date : 27/07/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '011_OPS_Yearly_Input' ;
+sCubeTarget = '012_OPS_Monthly_Input';
+
+
+sSourceScenario = 'FCT_N';
+sTargetScenario = sSourceScenario;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 & ELLEV( sDim, vElt )=0);
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Flag_Spread' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- MONTH SUBSET
+# ==================================================================================
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Aug' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Sep' , 2 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Oct' , 3 );
+SubsetElementInsert( sDim , sSubsetNameTarget, 'Nov' , 4 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'Dec' , 5 );
+
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+vInd = 'GM';
+
+vSourceValue = CELLGETN ( sCubeSource , Currency , Scenario,  Activity , Geo_From , Geo_To , Organization , Customer_Top , vInd ) - CELLGETN ( sCubeTarget , Currency , Scenario, 'YTD_Jul', Activity , Geo_From , Geo_To , Organization , Customer_Top , vInd );
+vTargetValue = CELLGETN ( sCubeTarget , Currency , Scenario, 'YTD_FCT', Activity , Geo_From , Geo_To , Organization , Customer_Top , vInd );
+
+IF ( vSourceValue <> 0 );	
+
+	vGMYTD = CELLGETN ( sCubeTarget , Currency , Scenario, 'YTD_FCT', Activity , Geo_From , Geo_To , Organization , Customer_Top , vInd );
+
+	IF(vGMYTD<> 0 );
+
+		vDim2 = 'Months';
+		k = 1;
+		kMax = SubsetGetSize ( vDim2 , sSubsetNameTarget ) ;
+		WHILE( k <= kMax );
+			vMonth = SubsetGetElementName ( vDim2 , sSubsetNameTarget , k );
+			 vValue = CELLGETN( sCubeTarget ,Currency , Scenario, vMonth,  Activity , Geo_From , Geo_To , Organization , Customer_Top , vInd);
+			CELLPUTN( vValue / vGMYTD, sCubeTarget , Currency , Scenario ,vMonth ,  Activity , Geo_From , Geo_To , Organization , Customer_Top ,'WEIGHT_WT_ADJ');
+			k= k + 1;	
+		END;
+
+	ENDIF;
+
+ENDIF;
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

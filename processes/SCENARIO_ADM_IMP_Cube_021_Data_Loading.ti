@@ -1,0 +1,129 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_021_Data_Loading
+# Description : 021 data loading from flat file
+# Created by : MBO
+# Date : 14/04/2021
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = '021_Init_Pilot';
+
+IF(pType@='SEA');
+	pIndicator = 'TEUS';
+ELSE;
+	pIndicator = 'CW';
+ENDIF;
+
+
+# Import Path
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Pilot_Data\Input_Pilot\' ;
+zFile_Name = 'Input_Pilot_' |pOrganization| '_'|pIndicator|'_Init_Export_File.csv';
+zFile_Import = zServer | zPath_Export | zFile_Name;
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+IF ( ELLEV( sDim , pOrganization ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetNameTarget , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetNameTarget , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , pIndicator , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+IF ( FileExists(zFile_Import )  = 0);
+	PROCESSBREAK;
+ENDIF;
+
+
+DatasourceNameForServer=zFile_Import;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+CellIncrementN( Value , sCubeTarget, Scenario, Months  , Carrier ,  Trade ,Loading_Location,Offloading_Location, Organization , Customer , Indicator );
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

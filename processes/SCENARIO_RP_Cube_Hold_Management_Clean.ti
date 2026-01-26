@@ -1,0 +1,89 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_RP_Cube_Hold_Management_Clean
+# Description : Clean Lock Total TEUS & CW
+# Created by : MBO
+# Date: 02/05/2019
+####################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sTM1USER =  TM1USER();
+sCubeSource= '}Hold_'|sTM1USER|'_}}_011_OPS_Yearly_Input'; 
+sSourceScenario = pScenario;
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | sTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | sTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario, 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+IF ( pOrganization @<> 'TOTAL_ORGANIZATION' );
+	sDim = 'Organization';
+	IF( SubsetExists( sDim, sSubsetName ) = 1 );
+		SubsetDeleteAllElements( sDim , sSubsetName );
+	ELSE;
+		SubsetCreate( sDim , sSubsetName, 1 );
+	ENDIF;
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+	ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+ENDIF;
+
+
+ViewZeroOut( sCubeSource , sViewName );
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

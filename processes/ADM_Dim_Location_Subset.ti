@@ -1,0 +1,123 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_LLocation
+# Description : Update Subset for POL / POD
+# Created by : MBO
+# Date : 24/05/2019
+##################################### 
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Loading_Location';
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+# Susbet Level0 without Label
+sSubsetName = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubsetName,'' );
+
+
+## Susbet Level0 with Label
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0, '' );
+
+## Susbet Level0 with Label without Unknown
+sSubNiv0Known = '}RP_List_Level0_'|vDim|'_Known' ;
+sMDX = '{ORDER( { EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, { ['|vDim|'].[XXXXX] }) } , ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0Known );
+SUBSETCREATEBYMDX( sSubNiv0Known , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0Known, '' );
+
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+SubsetAliasSet( vDim , sSubNiv0Known , 'Label' );
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Offloading_Location';
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+# Susbet Level0 without Label
+sSubsetName = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubsetName, '' );
+
+## Susbet Level0 with Label
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0, '' );
+
+
+## Susbet Level0 with Label without Unknown
+sSubNiv0Known = '}RP_List_Level0_'|vDim|'_Known' ;
+sMDX = '{ORDER( { EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, { ['|vDim|'].[XXXXX] }) } , ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0Known );
+SUBSETCREATEBYMDX( sSubNiv0Known , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetMDXSet(vDim, sSubNiv0Known, '' );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+SubsetAliasSet( vDim , sSubNiv0Known , 'Label' );
+#endregion

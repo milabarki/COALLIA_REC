@@ -1,0 +1,38 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : Z_ADM_Bulk_Mode_Activation
+# Description : Disabled Bulk load mode
+# Created by : MBO
+# Date : 13/09/2019
+####################################
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- Disabled BULK
+# ==================================================================================
+
+DisableBulkLoadMode();
+#endregion

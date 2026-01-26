@@ -1,0 +1,73 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_Group_Capabilities
+# Description : Submit / take ownership steps
+# Created by : MBO
+# Date : 14/06/2017
+####################################
+
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimGroup = '}Groups';
+sCubeSecu_Orga = '}Capabilities';
+
+
+
+i = 1;
+iMax = DIMSIZ( sDimGroup);
+
+WHILE ( i <= iMax );
+	vElt = DIMNM( sDimGroup , i );
+	IF( vElt@= 'SecurityAdmin' );
+		i=i+1;
+	ELSE;
+		CELLPUTS( 'DENY' , sCubeSecu_Orga , 'UseSandbox' , 'EXECUTE' , vElt );
+	ENDIF;
+	i = i + 1;
+END;
+
+i = 1;
+iMax = DIMSIZ( sDimGroup);
+
+WHILE ( i <= iMax );
+	vElt = DIMNM( sDimGroup , i );
+	IF( SUBST(vElt, 1, 2 )@= 'C_' % SUBST(vElt, 1, 2 )@= 'R_');
+	
+		k = 1;
+		kMax = DIMSIZ('}ApplicationEntries');
+		WHILE ( k <= kMax);
+			vElem = DIMNM('}ApplicationEntries', k);
+			CELLPUTS('NONE', '}ApplicationSecurity' , vElem , vElt);
+			k = k + 1;
+		END;
+
+	ENDIF;
+	i = i + 1;
+END;
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

@@ -1,0 +1,155 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : SECURITY_ADM_IMP_Cube_z03_Data_to_Flat
+# Description : z03 Data export to flat file
+# Created by : MBO
+# Date : 03/02/2020
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = 'z03_User_Infos' ;
+sCubeParam = 'z01_Admin_Param';
+
+
+# Extract Path
+zServer = CELLGETS('z01_Admin_Param' , 'SERVER_NAME' , 'STR_VAR_S');
+zPath_Export =  CELLGETS('z01_Admin_Param' , 'REP_IMPORT_SECURITY' , 'STR_VAR_S');
+zZone = CELLGETS('z01_Admin_Param' , 'ZONE' , 'STR_VAR_S');
+zInstance =  CELLGETS('z01_Admin_Param' , 'INSTANCE_NAME' , 'STR_VAR_S');
+
+
+zFile_Name = zInstance|'_'|zZone|'_Export_File.csv';
+zFile = zServer | zPath_Export | zFile_Name;
+
+
+ASCIIOUTPUT( 'ZZZZZ_TES.csv', zFile,zServer, zPath_Export, zFile_Name  );
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension z_Indicators_User_Infos
+sDim = 'z_Indicators_User_Infos';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'First_Name' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Last_Name' , 2 );
+SubsetElementInsert( sDim , sSubsetName , 'Login' , 3 );
+SubsetElementInsert( sDim , sSubsetName , 'Email' , 4 );
+SubsetElementInsert( sDim , sSubsetName , 'Argos' , 5 );
+SubsetElementInsert( sDim , sSubsetName , 'HFO' , 6 );
+SubsetElementInsert( sDim , sSubsetName , 'Operational' , 7 );
+SubsetElementInsert( sDim , sSubsetName , 'Pilot_AIR' , 8 );
+SubsetElementInsert( sDim , sSubsetName , 'Pilot_SEA' , 9 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_1' , 10 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_2', 11 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_3', 12 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_4', 13 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_5', 14 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_6', 15 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_7', 16 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_8', 17 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_9', 18 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization_Security_10', 19 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_1', 20 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_2', 21 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_3', 22 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_4', 23 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_5', 24 );
+SubsetElementInsert( sDim , sSubsetName , 'Organization', 25 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = ';';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+vBillingOrganization = CELLGETS(sCubeSource, zUser , 'Organization' );
+
+IF( z_Indicators_User_Infos@='Organization_Security_1');
+	z_Indicators_User_Infos='Organization';
+ENDIF;
+
+vOPS = CELLGETS(sCubeSource, zUser , 'Operational' );
+
+IF(vOPS@<>'N');
+	vOPSFlag =1;
+ELSE;
+	vOPSFlag =0;
+ENDIF;
+
+vARGOS = CELLGETS(sCubeSource, zUser , 'ARGOS' );
+
+IF(vARGOS@<>'N');
+	vARGOSFlag =1;
+ELSE;
+	vARGOSFlag =0;
+ENDIF;
+
+
+vPILOTAIR=CELLGETS(sCubeSource, zUser , 'Pilot_Sea' );
+vPILOTSEA =CELLGETS(sCubeSource, zUser ,'Pilot_Air' );
+
+IF(vPILOTAIR@<>'N' % vPILOTSEA@<>'N');
+	vPILOTFlag =1;
+ELSE;
+	vPILOTFlag =0;
+ENDIF;
+
+
+
+ASCIIOUTPUT(zFile, zUser , z_Indicators_User_Infos ,Value,NumberToString(vOPSFlag),NumberToString(vPILOTFlag), NumberToString(vARGOSFlag), '1', vBillingOrganization);
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion

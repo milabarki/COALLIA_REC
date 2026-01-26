@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Group_Capabilities",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Group_Capabilities.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "1767970333000"
+}

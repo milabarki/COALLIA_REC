@@ -1,0 +1,49 @@
+{
+	"@type":"Process",
+	"Name":"z_Specific_DEv_COM_ADM_IMP_Cube_022_Data_Loading",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"z_Specific_DEv_COM_ADM_IMP_Cube_022_Data_Loading.ti",
+	"DataSource":
+	{
+		"Type":"ASCII",
+		"dataSourceNameForServer":"D:/TM1Data/RUBIKS/Pilot_Sea_Budget_Dev_com.csv",
+		"dataSourceNameForClient":"D:\\TM1Data\\RUBIKS\\Pilot_Sea_Budget_Dev_com.csv",
+		"asciiHeaderRecords":0,
+		"asciiQuoteCharacter":"\"",
+		"asciiDecimalSeparator":",",
+		"asciiThousandSeparator":" ",
+		"asciiDelimiterType":"Character",
+		"asciiDelimiterChar":";"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"ORG_OCC_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"CLI_CD",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"TEUS_NB",
+			"Type":"Numeric",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033400012",
+	"VariablesUIData": [
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=33\fColType=827\f"
+	]
+}

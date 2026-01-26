@@ -1,0 +1,257 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_017_Effect_Calculation
+# Description : 017 effect calculation
+# Created by : MBO
+# Date : 14/05/2019
+# Update : 13/05/2024 Add USD Currency
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '017_OPS_Activity' ;
+sCubeTarget = sCubeSource;
+sCubeRate ='095_Currency_Rate';
+
+# Update : 13/05/2024 Add USD Currency
+sCubeRateUSD ='095_Currency_Rate_USD';
+
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'USD' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'EUR' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'FCT_N' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 2 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FX_EFF' , 1 );
+
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+
+
+IF( Scenario @= 'FCT_N');
+
+	vScenarioToCompare = 'ACT_N-1';
+	vInd = ATTRS ( 'Activity' ,Activity ,'Ind');
+	vInd = IF( SCAN('LCL', Activity) <> 0, 'TEUS' , ATTRS ( 'Activity' ,Activity ,'Ind'));
+
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='EUR');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+			vInd ='TOTAL_'|vInd;
+			vCurr = ATTRS( 'Organization_Full' , Organization_Full , 'Currency');
+
+			vValFCT = CELLGETN(  sCubeTarget,Currency ,Scenario, Activity , Organization_Full ,'GM' );
+			vVolFCT = CELLGETN(  sCubeTarget,Currency,Scenario, Activity , Organization_Full ,  vInd );
+
+			IF ( vVolFCT<>0);
+
+				vUMFCT = (vValFCT*1000)/vVolFCT;
+				vRateFCT = CELLGETN( sCubeRate , Scenario , vCurr , 'RATE');
+				vRateACT = CELLGETN( sCubeRate , vScenarioToCompare , vCurr , 'RATE');
+
+				vFxEff = (((vUMFCT/vRateACT)*vRateFCT)- vUMFCT)*vVolFCT;
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Scenario,Activity , Organization_Full ,'FX_EFF' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+# Update : 13/05/2024 Add USD Currency
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='USD');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+			vInd ='TOTAL_'|vInd;
+			vCurr = ATTRS( 'Organization_Full' , Organization_Full , 'Currency');
+
+			vValFCT = CELLGETN(  sCubeTarget,Currency ,Scenario, Activity , Organization_Full ,'GM' );
+			vVolFCT = CELLGETN(  sCubeTarget,Currency,Scenario, Activity , Organization_Full ,  vInd );
+
+			IF ( vVolFCT<>0);
+
+				vUMFCT = (vValFCT*1000)/vVolFCT;
+				vRateFCT = CELLGETN( sCubeRateUSD , Scenario , vCurr , 'RATE');
+				vRateACT = CELLGETN( sCubeRateUSD , vScenarioToCompare , vCurr , 'RATE');
+
+				vFxEff = (((vUMFCT/vRateACT)*vRateFCT)- vUMFCT)*vVolFCT;
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Scenario,Activity , Organization_Full ,'FX_EFF' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+ENDIF;
+
+
+IF( Scenario @= 'BUDGET_N+1');
+	
+	vScenarioToCompare = 'FCT_N';
+	vInd = ATTRS ( 'Activity' ,Activity ,'Ind');
+	vInd = IF( SCAN('LCL', Activity) <> 0, 'TEUS' , ATTRS ( 'Activity' ,Activity ,'Ind'));
+
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='EUR');
+		IF( vInd@<>'NA' & vInd@<>'FT');
+			vInd ='TOTAL_'|vInd;
+			vCurr = ATTRS( 'Organization_Full' , Organization_Full , 'Currency');
+
+			vValBGT = CELLGETN(  sCubeTarget,Currency ,Scenario, Activity , Organization_Full ,'GM' );
+			vVolBGT = CELLGETN(  sCubeTarget,Currency,Scenario, Activity , Organization_Full ,  vInd );
+
+			IF ( vVolBGT<>0);
+
+				vUMBGT = (vValBGT*1000)/vVolBGT;
+				vRateBGT = CELLGETN( sCubeRate , Scenario , vCurr , 'RATE');
+				vRateFCT = CELLGETN( sCubeRate , vScenarioToCompare , vCurr , 'RATE');
+
+				vFxEff = (((vUMBGT/vRateFCT)*vRateBGT) - vUMBGT)*vVolBGT;
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Scenario,Activity , Organization_Full ,'FX_EFF' );
+			ENDIF;
+		ENDIF;
+
+	ENDIF;
+
+# Update : 13/05/2024 Add USD Currency
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='USD');
+		IF( vInd@<>'NA' & vInd@<>'FT');
+			vInd ='TOTAL_'|vInd;
+			vCurr = ATTRS( 'Organization_Full' , Organization_Full , 'Currency');
+
+			vValBGT = CELLGETN(  sCubeTarget,Currency ,Scenario, Activity , Organization_Full ,'GM' );
+			vVolBGT = CELLGETN(  sCubeTarget,Currency,Scenario, Activity , Organization_Full ,  vInd );
+
+			IF ( vVolBGT<>0);
+
+				vUMBGT = (vValBGT*1000)/vVolBGT;
+				vRateBGT = CELLGETN( sCubeRateUSD , Scenario , vCurr , 'RATE');
+				vRateFCT = CELLGETN( sCubeRateUSD , vScenarioToCompare , vCurr , 'RATE');
+
+				vFxEff = (((vUMBGT/vRateFCT)*vRateBGT) - vUMBGT)*vVolBGT;
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Scenario,Activity , Organization_Full ,'FX_EFF' );
+			ENDIF;
+		ENDIF;
+
+	ENDIF;
+
+
+
+ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

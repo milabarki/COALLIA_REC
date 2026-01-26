@@ -1,0 +1,126 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Country_To
+# Description : Init Country_To
+# Created by : MBO
+# Date : 23/04/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Country_To';
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_COUNTRY';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',LOC_COUNTRY_CD,'n');
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,LOC_COUNTRY_CD,1.000000);
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Country',vDim, vTotal , 'Label');
+ATTRPUTS(LOC_COUNTRY_LB | ' (' | LOC_COUNTRY_CD | ')',vDim, LOC_COUNTRY_CD , 'Label');
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

@@ -1,0 +1,162 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_014_Growth_Calculation
+# Description : 014 growth calculation
+# Created by : MBO
+# Date : 17/07/2018
+# Update 2024/05/06 : Add USD
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '014_OPS_Global' ;
+sCubeTarget = sCubeSource;
+
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'EUR' , 1 );
+# Update 2024/05/06 : Add USD
+SubsetElementInsert( sDim , sSubsetName , 'USD' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'ACT_N-1' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'FCT_N' , 2 );
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 3 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+IF( Scenario @= 'ACT_N-1');
+
+
+	# Specific Case when FCT_N equal to zero
+	vScenarioToCompare = 'FCT_N';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare,Business_Dev, Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , Indicators_Op );
+
+	vGrowth = vValueToCompare - Value;
+	CELLPUTN( vGrowth , sCubeTarget,Currency,vScenarioToCompare, Business_Dev ,Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , 'Growth' );
+
+ENDIF;
+
+IF( Scenario @= 'FCT_N');
+
+
+	vScenarioToCompare = 'ACT_N-1';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare, Business_Dev, Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , Indicators_Op );
+
+	vGrowth = Value - vValueToCompare;
+	CELLPUTN( vGrowth , sCubeTarget,Currency,Scenario, Business_Dev,Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , 'Growth' );
+
+	# Specific Case when BUDGET_N+1 equal to zero
+	vScenarioToCompare = 'BUDGET_N+1';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare,Business_Dev, Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , Indicators_Op );
+
+	vGrowth = vValueToCompare-Value;
+	CELLPUTN( vGrowth , sCubeTarget,Currency,vScenarioToCompare, Business_Dev, Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , 'Growth' );
+
+
+
+
+ENDIF;
+
+IF( Scenario @= 'BUDGET_N+1');
+	
+	vScenarioToCompare = 'FCT_N';
+	vValueToCompare = CELLGETN(  sCubeTarget,Currency,vScenarioToCompare,Business_Dev, Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , Indicators_Op );
+
+	vGrowth = Value - vValueToCompare;
+	CELLPUTN( vGrowth , sCubeTarget,Currency,Scenario, Business_Dev,Months  , Activity , Product , Geo_From ,  Geo_To , Organization_Full ,  Customer_Top , 'Growth' );
+
+
+ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

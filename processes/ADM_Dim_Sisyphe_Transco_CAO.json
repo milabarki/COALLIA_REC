@@ -1,0 +1,38 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Sisyphe_Transco_CAO",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM_Dim_Sisyphe_Transco_CAO.ti",
+	"DataSource":
+	{
+		"Type":"ASCII",
+		"dataSourceNameForServer":"Define in Prolog",
+		"dataSourceNameForClient":"D:\\TM1Data\\RUBIKS\\Import\\Sisyphe\\ListeCAO.csv",
+		"asciiHeaderRecords":0,
+		"asciiQuoteCharacter":"\"",
+		"asciiDecimalSeparator":",",
+		"asciiThousandSeparator":" ",
+		"asciiDelimiterType":"Character",
+		"asciiDelimiterChar":";"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"vCAO",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703280006"
+}

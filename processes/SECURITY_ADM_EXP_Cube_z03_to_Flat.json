@@ -1,0 +1,44 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_ADM_EXP_Cube_z03_to_Flat",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_ADM_EXP_Cube_z03_to_Flat.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z03_User_Infos",
+		"dataSourceNameForClient":"z03_User_Infos",
+		"view":"Par défaut"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"zUser",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Indicators_User_Infos",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"Value",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033200022",
+	"VariablesUIData": [
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f"
+	]
+}

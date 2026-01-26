@@ -1,0 +1,68 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS  
+# Process : ADM_Dim_Customer_Actual_Other_Update_STEP2
+# Description : Hierarchy Other
+# Auteur : MBO
+# Date : 23/04/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDimCible = ' Customer_Actual';
+vDimSource = 'Organization';
+
+
+
+# ==================================================================================
+# -- INSERT ORGANIZATION HIERARCHY IN CUSTOMER ACTUAL
+# ==================================================================================
+k = 1;
+kMax = DIMSIZ( vDimSource );
+
+WHILE ( k <= kMax );
+  Elem_Orga = DIMNM ( vDimSource , k );
+
+  IF( ELLEV ( vDimSource , Elem_Orga ) = 0 );
+    DIMENSIONELEMENTINSERT( vDimCible , '' , 'OTHER_'|Elem_Orga , 'n' );
+    DIMENSIONELEMENTINSERT ( vDimCible , '' , 'OTH_'|Elem_Orga , 'n');
+    DIMENSIONELEMENTCOMPONENTADD( vDimCible , 'OTHER_'|Elem_ORGA , 'OTH_'|Elem_Orga , 1 );
+  ENDIF;
+
+   vNumParent = ELPARN( vDimSource , Elem_Orga );
+    i = 1 ;
+    WHILE( i <= vNumParent ) ;
+      Elem_Parent =  ELPAR( vDimSource , Elem_Orga , i );
+      DIMENSIONELEMENTINSERT ( vDimCible , '' , 'OTHER_'|Elem_Parent , 'c' );
+      Ponderation =  ELWEIGHT( vDimSource , Elem_Parent , Elem_Orga );
+      DIMENSIONELEMENTCOMPONENTADD( vDimCible , 'OTHER_'|Elem_Parent , 'OTHER_'|Elem_Orga , Ponderation );
+      i = i + 1;
+   END;
+
+  k = k + 1;
+END;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

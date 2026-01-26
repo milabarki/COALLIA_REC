@@ -1,0 +1,22 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_ADM_IMP_Cube_014_Data_Loading_MASTER",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"SCENARIO_ADM_IMP_Cube_014_Data_Loading_MASTER.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033100014",
+	"VariablesUIData": []
+}

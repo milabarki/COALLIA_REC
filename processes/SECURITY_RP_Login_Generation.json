@@ -1,0 +1,27 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Login_Generation",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_RP_Login_Generation.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pFirstName",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pLastName",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033300014"
+}

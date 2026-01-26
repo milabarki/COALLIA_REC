@@ -1,0 +1,205 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project :  RUBIKS BUDGET
+# Process : SCENARIO_RP_Cube_080_Workflow_Status_PILOT
+# Description : Submit / take ownership steps
+# Created by : MBO
+# Date :01/05/2018
+####################################
+
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+sIndic = IF ( pType @='SEA' , 'TEUS' , 'CW');
+
+### Workflow Cubes ###
+sCubeWKL1 = '080_Workflow';
+sCubeWKL2 = '081_Workflow_By_User';
+
+### Info Cube ###
+sCubeInfos = 'z03_User_Infos';
+
+### Securitry Cubes ###
+sCubeSecurity = '}CellSecurity_022_Input_Pilot';
+sCubeSecurity1 = '}CellSecurity_070_Unknown';
+sCubeSecurity2 = '}CellSecurity_071_Carrier';
+sCubeSecurity3 = '}CellSecurity_072_New_Business';
+sCubeSecurity4 = '}ClientGroups';
+sCubeSecurity5 ='z03_User_Infos';
+
+### Dimensions ###
+sDimOrga = 'Organization_Pilot';
+
+### other parameter ###
+sTM1USER =  TM1USER();
+sGroup =  pOrganization;
+ 
+### Availability control ###
+vAv = CELLGETS ( sCubeWKL1 , pScenario , pType ,pOrganization  ,'Availability');
+IF( vAv@<>'Unlock');
+	PROCESSQUIT;
+ENDIF;
+
+### Level Control ###
+IF(ELLEV( sDimOrga, pOrganization  ) <> 0 );
+	PROCESSQUIT;
+ENDIF;
+
+
+### Write Access Control ###
+sAccess = CELLGETS( sCubeSecurity5,sTM1USER , 'Pilot_'|pType );
+
+IF ( sAccess@<>'C');
+	PROCESSQUIT;
+ENDIF;
+
+# ==================================================================================
+# -- TAKEOWNERSHIP
+# ==================================================================================
+
+IF( pAction @= 'Take' );
+
+	### Control ###
+
+	# User in progress
+	vLock = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Lock' ); 
+	IF ( vLock@='N');
+		PROCESSQUIT;
+	ENDIF;
+
+	vDate = TIMST( NOW , '\d/\m/\Y \hh\i' );
+	vName =  SUBST(CELLGETS( sCubeInfos ,  sTM1USER  ,'First_Name'),1,1) |'. '| CELLGETS( sCubeInfos ,  sTM1USER  ,'Last_Name');
+
+	vContributor_Status = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Contributor_Status' ); 
+
+	 ## First Action
+	IF ( vContributor_Status@='Not Started');
+		CELLPUTN ( 1 ,sCubeWKL1, pScenario ,  pType ,pOrganization , 'Flag_Not_Started' ); 
+		CELLPUTS ( vDate ,sCubeWKL1, pScenario , pType ,pOrganization ,'Start_Date' ); 
+		CELLPUTS ( vName ,sCubeWKL1, pScenario ,  pType ,pOrganization ,'Contributor_Name' ); 
+	ENDIF;
+
+	#CELLPUTS ( 'N' ,sCubeWKL1, pScenario , pType , pOrganization  ,'Lock' ); 
+	CELLPUTN ( 1 ,sCubeWKL1, pScenario ,  pType , pOrganization ,'Flag_In_Progress' ); 
+	CELLPUTS ( vName ,sCubeWKL1, pScenario , pType , pOrganization , 'Contributor_Name' ); 
+
+	CELLPUTN ( 1 ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Flag_Not_Started' ); 
+	CELLPUTS ( vDate ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization,'Start_Date' ); 
+	CELLPUTS ( '' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Submit_Date' ); 
+	#CELLPUTS ( 'N' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Lock' ); 
+	CELLPUTN ( 1 ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization ,'Flag_In_Progress' ); 
+	CELLPUTS ( vName ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Contributor_Name' ); 
+	CELLPUTS ( '' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization ,'Submit_Name');
+
+######### BUDGET ###########
+###########################
+
+	IF ( pScenario @= 'BUDGET_N+1' );
+
+		sMod = 'C_';
+		CELLPUTS( sMod|sGroup , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+
+ 
+		## MAJ Sécurité 
+		vDim = 'Months';
+		i = 1;
+		iMax =  DIMSIZ(vDim);
+		WHILE ( i <= iMax );
+			vElt = DIMNM ( vDim , i );
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( 'WRITE' , sCubeSecurity , pScenario , vElt,sGroup,sIndic, sMod|sGroup );
+				CELLPUTS ( 'WRITE' , sCubeSecurity3 , pScenario , vElt,sGroup,sIndic, sMod|sGroup );
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		CELLPUTS ( 'WRITE' , sCubeSecurity , pScenario , 'TOTAL_YEAR', sGroup, sIndic ,sMod|sGroup );
+		CELLPUTS ( 'WRITE' , sCubeSecurity1 , pScenario , sGroup, sIndic  ,sMod|sGroup );
+		CELLPUTS ( 'WRITE' , sCubeSecurity2 , pScenario , sGroup, sIndic  ,sMod|sGroup );
+		CELLPUTS ( 'WRITE' , sCubeSecurity3 , pScenario , 'TOTAL_YEAR',sGroup,sIndic, sMod|sGroup );
+
+	ENDIF;
+
+
+ENDIF;
+
+# ==================================================================================
+# -- SUBMIT
+# ==================================================================================
+
+IF( pAction @= 'Submit' );
+
+	vDate = TIMST( NOW , '\d/\m/\Y \hh\i' );
+	vName =  SUBST(CELLGETS( sCubeInfos ,  sTM1USER  ,'First_Name'),1,1) |'. '| CELLGETS( sCubeInfos ,  sTM1USER  ,'Last_Name');
+
+	vContributor_Status = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Contributor_Status' ); 
+	IF ( vContributor_Status@='In Progress');
+		CELLPUTS ( vDate ,sCubeWKL1, pScenario , pType ,pOrganization  ,'Submit_Date' ); 
+		CELLPUTN ( 0 ,sCubeWKL1, pScenario , pType ,pOrganization  ,'Flag_In_Progress' ); 
+		CELLPUTS ( vName ,sCubeWKL1, pScenario ,  pType ,pOrganization  ,'Submit_Name' ); 
+	ENDIF;
+
+
+	CELLPUTS ( '' ,sCubeWKL1, pScenario ,pType , pOrganization ,'Contributor_Name' );
+	#CELLPUTS ( 'Y' ,sCubeWKL1, pScenario ,pType , pOrganization,'Lock' );
+	CELLPUTS ( vDate ,sCubeWKL2, pScenario ,pType , sTM1USER, pOrganization ,'Submit_Date' ); 
+	#CELLPUTS ( 'Y' ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Lock' ); 
+	CELLPUTN ( 0 ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Flag_In_Progress' ); 
+
+
+
+######### BUDGET #########
+###########################
+
+
+	IF ( pScenario @= 'BUDGET_N+1' );
+
+		sMod= 'C_';
+		CELLPUTS( '' , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+
+ 
+		    ## MAJ Sécurité 
+		    vDim = 'Months';
+		     i = i;
+		     iMax =  DIMSIZ(vDim);
+		     WHILE ( i <= iMax );
+			vElt = DIMNM ( vDim , i );
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( '' , sCubeSecurity , pScenario , vElt,sGroup, sIndic , sMod|sGroup );
+				CELLPUTS ( '' , sCubeSecurity3 , pScenario , vElt,sGroup,sIndic, sMod|sGroup );
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		CELLPUTS ( '' , sCubeSecurity , pScenario , 'TOTAL_YEAR',sGroup, sIndic ,sMod|sGroup );
+		CELLPUTS ( '' , sCubeSecurity1 , pScenario , sGroup, sIndic  ,sMod|sGroup );
+		CELLPUTS ( '' , sCubeSecurity2 , pScenario , sGroup, sIndic  ,sMod|sGroup );
+		CELLPUTS ( '' , sCubeSecurity3 , pScenario , 'TOTAL_YEAR',sGroup,sIndic, sMod|sGroup );
+
+	ENDIF;
+
+
+ENDIF;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

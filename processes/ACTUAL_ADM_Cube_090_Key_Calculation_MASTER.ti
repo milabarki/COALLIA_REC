@@ -1,0 +1,71 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : ACTUAL_ADM_Cube_090_Key_Calculation_MASTER
+# Description : Copy data from 012_OPS_Monthly_Input & Rate calculation
+# Created by : MBO
+# Date : 09/04/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeParam = 'z01_Admin_Param';
+
+Nb_Actual_Month = CELLGETS(sCubeParam , 'NB_ACTUAL_MONTH' , 'STR_VAR_S');
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  EXECUTE PROCESS
+# ==================================================================================
+
+EXECUTEPROCESS('ACTUAL_ADM_Cube_090_Key_Calculation_STEP1');
+EXECUTEPROCESS('ACTUAL_ADM_Cube_090_Key_Calculation_STEP2' , 'Nb_Actual_Month' , Nb_Actual_Month);
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

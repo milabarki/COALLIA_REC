@@ -1,0 +1,164 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : FORECAST_ADM_IMP_Cube_093_Data_Loading
+# Description : 093 - Rate loading for FCT_N 
+# Created by : MBO
+# Date : 23/04/2018
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = '093_Ratio_GM';
+
+
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+sScenarioSource ='FCT_N';
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'Vue_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+sZone = CELLGETS( vCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+vDim = 'Organization';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Customer_Top';
+IF(DIMIX(vDim , CLI_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | CLI_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Activity';
+IF(DIMIX(vDim , ACT_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ACT_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Geo_From';
+IF(DIMIX(vDim , LOC_LOAD_SUBCONT_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | LOC_LOAD_SUBCONT_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+Level = ELLEV('Customer_Top', CLI_CD);
+CLI_CD=IF( Level<>0 , CLI_CD|'_X' , CLI_CD );
+
+CELLPUTN( TO_LCY , sCubeTarget,sScenarioSource  , ACT_CD ,LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'RATE_TO');
+CELLPUTN( TEUS_NB , sCubeTarget,sScenarioSource  , ACT_CD ,  LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'RATE_TEUS');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,sScenarioSource  , ACT_CD ,  LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'RATE_CW');
+CELLPUTN( FT , sCubeTarget,sScenarioSource  , ACT_CD , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'RATE_FT');
+CELLPUTN( JF_NB , sCubeTarget,sScenarioSource , ACT_CD , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'RATE_JobFile_Nb');
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

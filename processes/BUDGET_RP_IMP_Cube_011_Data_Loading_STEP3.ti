@@ -1,0 +1,176 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_RP_IMP_Cube_011_Data_Loading_STEP3
+# Description : Unit Margin Calculation for specific GM ( without volume at init ) / TO calculation ( without GM at init ) 
+# Created by : MBO
+# Date : 14/06/2018
+####################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '011_OPS_Yearly_Input' ;
+sCubeTarget = sCubeSource;
+sCubeWK = '080_Workflow';
+
+sSourceScenario = 'FCT_N';
+sTargetScenario = 'BUDGET_N+1';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- CHECKING LOCK/UNLOCK STATUS
+# ==================================================================================
+
+vAv = CELLGETS ( sCubeWK , sTargetScenario , 'OPS' ,pOrganization  ,'Availability');
+IF( vAv@<>'Unlock');
+	PROCESSQUIT;
+ENDIF;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TO' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- UNIT MARGIN CALCULATION
+# ==================================================================================
+
+IF( Indicators_Op@='GM');
+
+	vInd = ATTRS ( 'Activity' ,Activity ,'Ind');
+
+	IF( vInd @='NA');
+		ITEMSKIP;
+	ELSE;
+
+		vUnit = CELLGETN ( sCubeSource , Currency , sSourceScenario , Activity , Geo_From , Geo_To , Organization , Customer_Top , IF( vInd@='FT' , vInd , 'TOTAL_'|vInd) );
+		IF ( vUnit <> 0 ) ;
+			CELLPUTN( (Value*1000)/vUnit , sCubeTarget , Currency , sTargetScenario , Activity , Geo_From , Geo_To , Organization , Customer_Top , 'GM_'|vInd|'_RATE' );
+		ENDIF;
+	ENDIF;
+
+ENDIF;
+
+
+
+# ==================================================================================
+# -- TO  CALCULATION
+# ==================================================================================
+
+IF( Indicators_Op@='TO');
+
+	vGM = CELLGETN ( sCubeSource , Currency , sSourceScenario , Activity , Geo_From , Geo_To , Organization , Customer_Top , 'GM');
+	IF ( vGM<> 0 ) ;
+		CELLPUTN( vGM\Value  , sCubeTarget , Currency , sTargetScenario , Activity , Geo_From , Geo_To , Organization , Customer_Top , 'YIELD' );
+	ENDIF;
+
+ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

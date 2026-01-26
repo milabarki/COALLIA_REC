@@ -1,0 +1,42 @@
+{
+	"@type":"Process",
+	"Name":"ARG_ADM_Dim_ARGOS_Product",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_ADM_Dim_ARGOS_Product.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV",
+		"dataSourceNameForClient":"RUBIKS_DEV",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT\r\nPRD_CD,\r\nPRD_LB\r\nFROM [ARG].[DIM_PRODUCT]\r\nORDER BY PRD_LB"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"PRD_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"PRD_LB",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797032800025"
+}

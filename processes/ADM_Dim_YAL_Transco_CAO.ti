@@ -1,0 +1,89 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+########################################################################
+# Project : RUBIKS
+# Process : ADM_Dim_YAL_Transco_CAO
+# Description : Dimension creation
+# Created by : MBA-Datatilt
+# Date : 03/07/2025
+########################################################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+vDim = 'YAL_Transco_CAO';
+
+
+DIMENSIONDELETEALLELEMENTS ( vDim);
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#==========================================================================================
+# INSERT DIMENSION ELEMENTS
+#==========================================================================================
+
+IF ( DIMIX( vDim , CODE_HERMES) = 0 );
+	DIMENSIONELEMENTINSERT(vDim,'', CODE_HERMES,'N');
+	
+ENDIF;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# NUMBER OF ROW ( READ )
+# ==================================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion

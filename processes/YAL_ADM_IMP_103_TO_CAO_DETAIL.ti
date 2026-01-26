@@ -1,0 +1,144 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+###################################################################################
+# Project : RUBIKS
+# Process : YAL_ADM_IMP_103_TO_CAO_DETAIL
+# Description : Data Load 
+# Created by : MBA-Datatilt
+# Date : 18/06/2025
+###################################################################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sCubeTarget = '103_TO_Rate_Detail';
+
+#Disable logging cube
+CUBESETLOGCHANGES( sCubeTarget , 0 );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer = CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName = CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword = CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# -- View Creation on '102_TO_Rate' Cube
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension Scenario ------------------------------------------------------------------------------------------
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FCT_N' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'BUDGET_N+1' , 1 );
+
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+#-- Subset creation on dimension z_Str_Var ------------------------------------------------------------------------------------------
+sDim = 'z_Str_Var';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'STR_VAR_N' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget, sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+# -- Organization ------------------------------------------------------------------------------------------------------------------------------
+vDim = 'Organization_Full';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+# -- Customer_Top---------------------------------------------------------------------------------------------------------------------------
+
+vDim = 'Customer_Top';
+IF(DIMIX(vDim , CLI_CD )= 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | CLI_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+CELLPUTN( PCT_TO_CONSO_DEV, sCubeTarget, 'ACT_N-1' , ORG_OCC_CD, CLI_CD, LOC_LOAD_SUBCONT_CD, LOC_OFFLOAD_SUBCONT_CD, 'STR_VAR_N' );
+CELLPUTN( PCT_TO_CONSO_DEV, sCubeTarget, 'FCT_N' , ORG_OCC_CD, CLI_CD, LOC_LOAD_SUBCONT_CD, LOC_OFFLOAD_SUBCONT_CD, 'STR_VAR_N' );
+CELLPUTN( PCT_TO_CONSO_DEV, sCubeTarget, 'BUDGET_N+1', ORG_OCC_CD, CLI_CD, LOC_LOAD_SUBCONT_CD, LOC_OFFLOAD_SUBCONT_CD, 'STR_VAR_N' );
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# --- logging cube
+# ==================================================================================
+CUBESETLOGCHANGES( sCubeTarget , 1 );
+#endregion

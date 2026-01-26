@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_RP_Cube_072_Access_To_New_Business",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SCENARIO_RP_Cube_072_Access_To_New_Business.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pStatus",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pOrganization",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenario",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pType",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703320008"
+}

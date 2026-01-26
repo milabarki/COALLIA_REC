@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Group_Creation_From_Sales_Organization",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Group_Creation_From_Sales_Organization.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z03_User_Infos",
+		"dataSourceNameForClient":"z03_User_Infos",
+		"view":"Par défaut"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"Client",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Indicator",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"vOrganization",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703330007"
+}

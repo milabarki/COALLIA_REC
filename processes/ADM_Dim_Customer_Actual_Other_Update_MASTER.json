@@ -1,0 +1,22 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Customer_Actual_Other_Update_MASTER",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Dim_Customer_Actual_Other_Update_MASTER.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703270006",
+	"VariablesUIData": []
+}

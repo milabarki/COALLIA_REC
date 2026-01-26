@@ -1,0 +1,51 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : ADM_Dim_Customer_Top_Update_Atribut
+# Description : Customer attributes update
+# Created by : MBO
+# Date : 23/04/2018
+####################################
+
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+sDim = 'Customer_Top';
+
+i = 1;
+iMax = DIMSIZ ( sDim );
+WHILE ( i <= iMax);
+	vCustomer = DIMNM ( sDim  , i );
+	IF ( vCustomer @<> ' TOTAL_OTHERS');
+		vLabel = ATTRS ( 'Customer_Full' , vCustomer , 'Label');
+		vProduct = ATTRS ( 'Customer_Full' , vCustomer , 'Product');
+
+		ATTRPUTS( vLabel ,sDim,vCustomer , 'Label');
+		ATTRPUTS( vProduct ,sDim,vCustomer , 'Product');
+	ENDIF;
+	i = i + 1;
+END;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

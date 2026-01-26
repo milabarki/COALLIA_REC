@@ -1,0 +1,197 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Loading_Location
+# Description : Init Loading_Location 
+# Created by : MBO
+# Date : 23/04/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Loading_Location';
+
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_LOC';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'SubContinent';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',LOC_CONT_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',LOC_SUBCONT_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',LOC_COUNTRY_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',LOC_CD,'n');
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,LOC_CONT_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,LOC_CONT_CD,LOC_SUBCONT_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,LOC_SUBCONT_CD,LOC_COUNTRY_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,LOC_COUNTRY_CD,LOC_CD,1.000000);
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Loading Location',vDim, vTotal , 'Label');
+ATTRPUTS(LOC_CONT_LB | ' (' | LOC_CONT_CD | ')',vDim, LOC_CONT_CD , 'Label');
+ATTRPUTS(LOC_SUBCONT_LB | ' (' | LOC_SUBCONT_CD | ')',vDim, LOC_SUBCONT_CD , 'Label');
+ATTRPUTS(LOC_COUNTRY_LB | ' (' | LOC_COUNTRY_CD | ')',vDim, LOC_COUNTRY_CD , 'Label');
+ATTRPUTS(LOC_LB | ' (' | LOC_CD | ')',vDim, LOC_CD , 'Label');
+ATTRPUTS(LOC_SUBCONT_CD,vDim, LOC_CD , 'SubContinent');
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+# Susbet Level0 without Label
+sSubsetName = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+
+## Susbet Level0 with Label
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubNiv0 , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubNiv0 , 1 );
+
+
+## Susbet Level0 with Label without Unknown
+sSubNiv0Known = '}RP_List_Level0_'|vDim|'_Known' ;
+sMDX = '{ORDER( { EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, { ['|vDim|'].[XXXXX] }) } , ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0Known );
+SUBSETCREATEBYMDX( sSubNiv0Known , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubNiv0Known , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubNiv0Known , 1 );
+
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+SubsetAliasSet( vDim , sSubNiv0Known , 'Label' );
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+
+#endregion

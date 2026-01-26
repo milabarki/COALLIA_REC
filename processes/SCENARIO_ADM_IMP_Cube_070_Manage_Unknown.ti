@@ -1,0 +1,220 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SCENARIO_ADM_IMP_Cube_070_Manage_Unknown
+# Description : Load "Unknown" data from 022_Pilot_Input
+# Created by : MBO
+# Date : 03/05/2018
+####################################
+
+# ==================================================================================
+# --  CONTROL
+# ==================================================================================
+
+IF( pStatus @<>'N');
+	PROCESSQUIT;
+ENDIF;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '022_Input_Pilot';
+sCubeTarget = '070_Unknown';
+
+zCustomer = DimensionElementPrincipalName( 'Customer_Actual' , pCustomer );
+zCarrier = DimensionElementPrincipalName( 'Carrier' , pCarrier );
+zTrade = DimensionElementPrincipalName( 'Trade' , pTrade );
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' |sCubeSource| '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Customer
+sDim = 'Customer_Actual';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF( zCustomer@<>'TOTAL_CUSTOMER');
+	IF ( ELLEV( sDim , zCustomer ) = 0 );
+		SubsetElementInsert( sDim , sSubsetName , zCustomer , 1 );
+	ELSE;
+		i = 1;
+		iMax = DIMSIZ( sDim );
+		WHILE( i <= iMax );
+			vElt = DIMNM ( sDim , i) ;
+			IF ( ELISANC ( sDim ,zCustomer, vElt ) <> 0 );
+				SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+			ENDIF;
+			i = i + 1;
+		END;
+	ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+ENDIF;
+
+#-- Subset creation on dimension Carrier
+sDim = 'Carrier';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF ( ELLEV( sDim , zCarrier ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetName , zCarrier , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , zCarrier, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Trade
+sDim = 'Trade';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF ( ELLEV( sDim , zTrade ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetName , zTrade , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , zTrade, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+
+SubsetElementInsert( sDim , sSubsetNameTarget , pOrganization , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , zIndicator , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+IF( Customer_Actual@='X-XXXX' % Offloading_Location @='XXXXX' % Loading_Location @='XXXXX' % Carrier@='XXXXXX' % Carrier@='YYYYYY' );
+	CELLPUTN (1 , sCubeTarget, Scenario, Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , Indicators_Pilot , 'Flag');
+ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_RP_Cube_072_Cancel_Business",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SCENARIO_RP_Cube_072_Cancel_Business.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pOrganization",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenario",
+			"Prompt":"",
+			"Value":"BUDGET_N+1",
+			"Type":"String"
+		},
+		{
+			"Name":"pType",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pStatus",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033200010"
+}

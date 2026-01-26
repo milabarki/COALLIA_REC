@@ -1,0 +1,303 @@
+#region Prolog
+IF( pLockObj @<> '' ) ;
+           SYNCHRONIZED( pLockObj ) ;
+ENDIF ;
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#################################################################################################
+# Process : YAL_ADM_RUBIKS_EXP_CAO_EU_Cube_101_to_Flat
+# Description : 101 Data export to flat file
+# Created by : MBA-Datatilt
+# Date : 26/06/2025
+# Updated by : MTA - 01/09/2025 - Forcage horodatage to HH00
+#################################################################################################
+
+# ================================================================================================
+# --  VARIABLES
+# ================================================================================================
+
+sCubeSource = '101_YAL_Export';
+
+NbLigne = 1;
+
+# -- Get Export Date & Time [AAAAMMDD]_[HHmmSS]
+sDateTime = TIMST(NOW(), '\Y\m\d_\h\00\00\00\00');
+
+
+# Import Path -----------------------------------------------------------------------------------------------------------------------------------------------------------
+zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT_YALLA' , 'STR_VAR_S');
+zFile_Name = 'RUBIKS_Export_CAO_EU_' | sDateTime | '.txt';
+zFile_Export = zPath_Export | zFile_Name;
+
+
+# Technical Path ------------------------------------------------------------------------------------------------------------------------------------------------------
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export_Tech = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Technical\' ;
+zFile_Folder_Tech = zServer | zPath_Export_Tech;
+
+
+# View creation ---------------------------------------------------------------------------------------------------------------------------------------------------------
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Cube_' | sCubeSource | '_' | vTM1USER| '_' | pER | '_' | GetProcessName() ;
+sSubsetName = 'Subset_Cube_' | sCubeSource | '_' | vTM1USER | '_' |pER | '_' |   GetProcessName() ;
+
+
+# ================================================================================================
+# -- SOURCE VIEW CREATION
+# ================================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Months --------------------------------------------------------------------------------------------------------------------
+
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ ( sDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( sDim  , i );
+	IF( ELLEV(sDim , vElt) =0 );
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization_YAL -----------------------------------------------------------------------------------------------------
+
+sDim = 'Organization_YAL';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ ( sDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( sDim  , i );
+	IF( ELLEV(sDim , vElt) =0 & ELISANC ( sDim , pER, vElt) <> 0 );
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Activity -----------------------------------------------------------------------------------------------------------------
+sDim = 'Activity';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'TOTAL_ACTIVITY' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Indicators_Op ---------------------------------------------------------------------------------------------------------
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TO_CONSO' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'TO' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ================================================================================================
+# -- DATASOURCE PARAMETERS
+# ================================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 0 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+# ================================================================================================
+#-- Export txt parameters
+# ================================================================================================
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = char(09);
+DatasourceASCIIThousandSeparator='';
+DatasourceASCIIDecimalSeparator= '.';
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ================================================================================================
+# -- DATA EXPORT 
+# ================================================================================================
+
+# -- Set UTF-8 encoding to support Unicode characters
+SetOutputCharacterSet( zFile_Export , 'TM1CS_UTF8');
+
+# -- Export File title 
+IF(NbLigne = 1);
+        ASCIIOUTPUT( zFile_Export , 'Account', 'Entity' , 'Code_Hermes','Scenario' , 'Years' , 'Period' , 'Vue', 'Amount');
+        NbLigne = 2;
+EndIf;
+
+#-- Reconditionning indicator => Account ----------------------------------------------------------------------------------------------------------------------
+
+# -- 
+IF(Indicators_Op @= 'GM');
+	sCG = 'DGMREV_C' ;
+ENDIF;
+
+# -- 
+IF(Indicators_Op @= 'TO');
+	sCG = 'GROSSREVT_C';
+ENDIF;
+
+# --
+IF(Indicators_Op @= 'TO_CONSO');
+	sCG = 'GROSSREV_C';
+ENDIF;
+
+#-- Reconditionning scenario ----------------------------------------------------------------------------------------------------------------------------------------------
+IF(Scenario @= 'BUDGET_N+1' );
+	sScenario = 'Budget';
+ELSEIF(Scenario @= 'FCT_N' );
+	sScenario = 'Outlook';
+ENDIF;
+
+#-- Reconditionning Years --------------------------------------------------------------------------------------------------------------------------------------------------
+
+Year = ATTRS('Scenario', Scenario, 'Year');
+vYears   = 'FY' | SUBST( Year, 3 , 4); 
+
+#-- Reconditionning Organization & Code Hermes ---------------------------------------------------------------------------------------------------------
+sDim = 'Organization_YAL';
+#vOrganization  = CellGetS( '}ElementAttributes_Organization_YAL', Organization_Yal, 'Organization');
+vOrganization  = ELPAR(sDim, Organization_Yal , 1);
+vCodeHermes = CellGetS( '}ElementAttributes_Organization_YAL', Organization_Yal, 'Code_Hermes');
+
+
+#-- Reconditionning value -------------------------------------------------------------------------------------------------------------------------------------------
+nVal = Value;
+nValArr = ROUNDP (nVal , 3 );
+sVal = numbertostring( nValArr );
+
+pos = SCAN( ',' , sVal);
+IF ( pos <> 0 );
+	sValEnt  = SUBST( sVal , 1 , pos-1);
+	sValDec = SUBST( sVal , pos+1 , LONG(sVal) );
+	sValExport = sValEnt | '.' | sValDec;
+ELSE;
+	sValExport= sVal;
+ENDIF;
+
+# ================================================================================================
+                                                                        ### -- EXPORT GM -- ###
+# ================================================================================================
+## -- For bugdet --> Yearly & Monthly 
+
+IF ( Scenario@='BUDGET_N+1');
+                 vScenario = 'Budget' ;
+
+
+                  # -- Export : Monthly >> YTD ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	IF ( Indicators_Op @= 'GM' & (Months@<>'TOTAL_VALUE' & Months@<>'Dec') ); 
+		vMonthSI = 'M'|ATTRS ('Months' , Months, 'Num');
+                                   ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes ,vScenario , vYears , vMonthSI ,'MTD', sValExport );
+
+	ENDIF;
+
+	IF ( Indicators_Op @= 'TO_CONSO' & (Months@<>'TOTAL_VALUE' & Months@<>'Dec') ); 
+		vMonthSI = 'M'|ATTRS ('Months' , Months, 'Num');
+                                   ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , vMonthSI  ,'MTD', sValExport );
+
+	ENDIF;
+
+	IF ( Indicators_Op @= 'TO' & (Months@<>'TOTAL_VALUE' & Months@<>'Dec') ); 
+		vMonthSI = 'M'|ATTRS ('Months' , Months, 'Num');
+                                   ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , vMonthSI  ,'MTD', sValExport );
+
+	ENDIF;
+
+                  # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+                 # -- Export : Yearly  >> YTD ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+                 IF ( Indicators_Op @= 'GM' & Months@='TOTAL_VALUE' ); 
+		ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+
+                  IF ( Indicators_Op @= 'TO_CONSO' & Months@='TOTAL_VALUE' ); 
+		ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+
+	IF ( Indicators_Op @= 'TO' & Months@='TOTAL_VALUE' ); 
+		ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+                 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	
+ENDIF;
+
+## -- For bugdet --> Yearly 
+
+IF ( Scenario@='FCT_N');
+                  vScenario ='Outlook';
+
+                 # -- Export : Yearly  >> YTD ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	IF ( Indicators_Op @= 'GM' & Months@='TOTAL_VALUE' ); 
+                                    ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+
+
+	IF ( Indicators_Op @= 'TO_CONSO' & Months@='TOTAL_VALUE' ); 
+		ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+
+                  
+                  IF ( Indicators_Op @= 'TO' & Months@='TOTAL_VALUE' ); 
+		ASCIIOUTPUT( zFile_Export , sCG , vOrganization , vCodeHermes, vScenario , vYears , 'M12' ,'YTD', sValExport );
+	ENDIF;
+                  # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ENDIF;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+ASCIIOUTPUT( zFile_Folder_Tech | pER | sCubeSource|'.txt' , pER, GetProcessName() ) ;
+#endregion

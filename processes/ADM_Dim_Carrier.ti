@@ -1,0 +1,287 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Carrier
+# Description : Init Carrier 
+# Created by : MBO
+# Date : 23/04/2018
+#####################################
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Carrier';
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_CARRIER';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',CAR_TYPE_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',CAR_QUALIF_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',CAR_CD,'n');
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CAR_TYPE_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,CAR_TYPE_CD,CAR_QUALIF_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,CAR_QUALIF_CD,CAR_CD,1.000000);
+
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Carrier',vDim, vTotal , 'Label');
+ATTRPUTS(CAR_QUALIF_LB,vDim, CAR_QUALIF_CD , 'Label');
+ATTRPUTS(CAR_TYPE_LB,vDim, CAR_TYPE_CD , 'Label');
+ATTRPUTS(CAR_LB,vDim, CAR_CD , 'Label');
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+
+# Subset Level0 With Label
+sSubsetName = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+
+# Subset Level0 Without Label
+sSubsetName  = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+
+# Subset Level0 SEA
+sSubsetName  = '}RP_List_Level0_SEA_'|vDim;
+sMDX= '{TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*SEA*")}, ALL, RECURSIVE )}';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+SubsetElementInsert( vDim , sSubsetName  , 'TOTAL_CARRIER', 1 );
+Size = SubsetGetSize( vDim , sSubsetName );
+SubsetElementInsert( vDim , sSubsetName  , 'X', Size+1 );
+SubsetElementInsert( vDim , sSubsetName  , 'O_X', Size+2 );
+SubsetElementInsert( vDim , sSubsetName  , 'XXXXXX', Size+3 );
+SubsetElementInsert( vDim , sSubsetName  , 'YYYYYY', Size+4 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+# Subset Level0 AIR
+sSubsetName  = '}RP_List_Level0_AIR_'|vDim;
+sMDX= '{TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*AIR*")}, ALL, RECURSIVE )}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+
+SubsetElementInsert( vDim , sSubsetName  , 'TOTAL_CARRIER', 1 );
+Size = SubsetGetSize( vDim , sSubsetName );
+SubsetElementInsert( vDim , sSubsetName  , 'X', Size+1 );
+SubsetElementInsert( vDim , sSubsetName  , 'O_X', Size+2 );
+SubsetElementInsert( vDim , sSubsetName  , 'XXXXXX', Size+3 );
+SubsetElementInsert( vDim , sSubsetName  , 'YYYYYY', Size+4 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+
+#--------------------------------------- FBU : 29/09/2017 : Ajout subset SEA et AIR
+# Subset Level0 SEA
+sSubsetName  = '}RP_List_SEA_' | vDim ;
+sMDX= '{TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*SEA*")}, ALL, RECURSIVE )}';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+Size = SubsetGetSize( vDim , sSubsetName );
+SubsetElementInsert( vDim , sSubsetName  , 'X', Size+1 );
+SubsetElementInsert( vDim , sSubsetName  , 'O_X', Size+2 );
+SubsetElementInsert( vDim , sSubsetName  , 'XXXXXX', Size+3 );
+SubsetElementInsert( vDim , sSubsetName  , 'YYYYYY', Size+4 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+# Subset Level0 AIR
+sSubsetName  = '}RP_List_AIR_' | vDim ;
+sMDX= '{TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*AIR*")}, ALL, RECURSIVE )}';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+Size = SubsetGetSize( vDim , sSubsetName );
+SubsetElementInsert( vDim , sSubsetName  , 'X', Size+1 );
+SubsetElementInsert( vDim , sSubsetName  , 'O_X', Size+2 );
+SubsetElementInsert( vDim , sSubsetName  , 'XXXXXX', Size+3 );
+SubsetElementInsert( vDim , sSubsetName  , 'YYYYYY', Size+4 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+# Subset Level0 SEA Flat
+sSubsetName  = '}RP_List_Level0_SEA_Flat_'|vDim;
+sMDX= '{TM1FILTERBYLEVEL( {TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*SEA*")}, ALL, RECURSIVE )} , 0) }';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+# Subset Level0 AIR Flat
+sSubsetName  = '}RP_List_Level0_AIR_Flat_'|vDim;
+sMDX= '{TM1FILTERBYLEVEL( {TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "*AIR*")}, ALL, RECURSIVE )} , 0) }';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName  );
+SUBSETCREATEBYMDX( sSubsetName  , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName  , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName  , 1 );
+
+SubsetAliasSet( vDim , sSubsetName  , 'Label' );
+
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+
+
+
+#endregion

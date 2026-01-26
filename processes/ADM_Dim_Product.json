@@ -1,0 +1,42 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Product",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM_Dim_Product.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV",
+		"dataSourceNameForClient":"RUBIKS_DEV",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT\r\nPRD_CD,\r\nPRD_LB\r\nFROM [BUD].[DIM_PRODUCT]\r\nORDER BY PRD_LB"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"PRD_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"PRD_LB",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703280003"
+}

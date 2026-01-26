@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"ARG_ADM_Dim_ARGOS_Customer_List",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_ADM_Dim_ARGOS_Customer_List.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797032800019"
+}

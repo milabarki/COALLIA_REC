@@ -1,0 +1,39 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_RP_New_Business_Access
+# Description : Ne Business access
+# Created by : MBO
+# Date : 01/06/2018
+####################################
+
+
+# ==================================================================================
+# --  PROCESS CONTROL
+# ==================================================================================
+
+# Control
+IF ( pStatus @<> 'N');
+	PROCESSQUIT;
+ENDIF;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

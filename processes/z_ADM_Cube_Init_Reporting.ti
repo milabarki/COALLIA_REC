@@ -1,0 +1,80 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : Adm_Cube_Init_Reporting
+# Description : Init Parameter Cube
+# Auteur : MBO
+# Date : 22/11/2016
+####################################
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+sCubeTarget1 = '013_Global_Operational';
+sCubeTarget2 = '014_SL_Reporting';
+sCubeTarget3 = '015_Operational_Tradelane';
+sCubeTarget4 = '023_Global_Pilot';
+sCubeTarget5 = '024_Global_Input_Pilot';
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName1 = 'Vue_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName1 = 'Subset_Target_Cube_' | sCubeTarget1 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName2 = 'Vue_Target_Cube_' | sCubeTarget2 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName2 = 'Subset_Target_Cube_' | sCubeTarget2 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName3 = 'Vue_Target_Cube_' | sCubeTarget3 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName3 = 'Subset_Target_Cube_' | sCubeTarget3 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName4 = 'Vue_Target_Cube_' | sCubeTarget4 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName4 = 'Subset_Target_Cube_' | sCubeTarget4 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewName5 = 'Vue_Target_Cube_' | sCubeTarget5 | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName5 = 'Subset_Target_Cube_' | sCubeTarget5 | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+
+ViewCreate( sCubeTarget1 , sViewName1,1 );
+ViewCreate( sCubeTarget2 , sViewName2,1 );
+ViewCreate( sCubeTarget3 , sViewName3,1 );
+ViewCreate( sCubeTarget4 , sViewName4,1 );
+ViewCreate( sCubeTarget5 , sViewName5,1 );
+
+ViewZeroOut( sCubeTarget1 , sViewName1);
+ViewZeroOut( sCubeTarget2 , sViewName2 );
+ViewZeroOut( sCubeTarget3 , sViewName3 );
+ViewZeroOut( sCubeTarget4 , sViewName4 );
+ViewZeroOut( sCubeTarget5 , sViewName5 );
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

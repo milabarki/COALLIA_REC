@@ -1,0 +1,164 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Organization_ER_Full
+# Description : Init Organization_ER
+# Created by : MBO
+# Date : 17/05/2019
+#####################################
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Organization_ER_Full';
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+vTotal='TOTAL_ORGANIZATION';
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Level';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+AttributeToAdd = 'Currency';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'ER';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Nb_New';
+AttributeToAddType = 'N';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+sZone = CELLGETS( vCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',ORG_ER_CD,'n');
+
+
+
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,ORG_ER_CD,1.000000);
+
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Organization',vDim, vTotal , 'Label');
+ATTRPUTS('EUR',vDim, vTotal , 'Currency');
+
+ATTRPUTS(ORG_ER_LB,vDim, ORG_ER_CD , 'Label');
+ATTRPUTS(ORG_ER_CURRENCY_CD,vDim, ORG_ER_CD , 'Currency');
+ATTRPUTS('ER',vDim, ORG_ER_CD , 'Level');
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+
+
+
+#endregion

@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_AudtiLogs_Cleaning",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"Z_ADM_AudtiLogs_Cleaning.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797033300031"
+}

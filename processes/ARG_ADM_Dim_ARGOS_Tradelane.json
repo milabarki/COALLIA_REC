@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"ARG_ADM_Dim_ARGOS_Tradelane",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_ADM_Dim_ARGOS_Tradelane.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":1,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "176797032800026"
+}

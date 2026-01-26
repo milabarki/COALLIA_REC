@@ -1,0 +1,22 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_Clear_Cube",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_Clear_Cube.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pCube",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033300034",
+	"VariablesUIData": []
+}

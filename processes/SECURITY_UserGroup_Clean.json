@@ -1,0 +1,47 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_UserGroup_Clean",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_UserGroup_Clean.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"}ClientGroups",
+		"dataSourceNameForClient":"}ClientGroups",
+		"view":"Par défaut"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pUser",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"vUser",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"vGroup",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"Value",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300018"
+}

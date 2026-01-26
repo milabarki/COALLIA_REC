@@ -1,0 +1,92 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : ADM_Dim_Customer_Top_ExceptBLX
+# Description : Customer Subset creation
+# Created by : MBO
+# Date : 23/04/2018
+####################################
+
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+sDim = 'Customer_Top';
+
+# Subset HQ without BLX and Bollore
+sSubsetName = '}RP_List_Except_BLX_'|sDim;
+
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName );
+ENDIF;
+
+
+# Subset HQ  with BLX and Bollore
+sExSubsetName = '}RP_List_With_BLX_'|sDim;
+
+IF( SubsetExists( sDim, sExSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sExSubsetName );
+ELSE;
+	SubsetCreate( sDim , sExSubsetName );
+ENDIF;
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Assign the view to the process source
+DatasourceNameForServer=sDim;
+DataSourceType = 'SUBSET';
+DatasourceDimensionSubset='}RP_List_Customer_Top';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# -- Insert element in subset
+vCustomerLabel = ATTRS( sDim , vCustomer , 'Label' ) ;
+
+IF ( vCustomerLabel @= '' ) ;
+	vCustomer = vCustomer ;
+ELSE ;
+	vCustomer = vCustomerLabel ;
+ENDIF;
+
+#IF ( ELLEV ( sDim , vCustomer) = 1 );
+
+	IF ( SCAN ( 'BOLLOR', vCustomer) = 0 & SCAN ( 'BLX', vCustomer) = 0  ) ;
+		SubsetElementInsert( sDim , sSubsetName , vCustomer , 1 );
+	ELSE;
+	
+		SubsetElementInsert( sDim , sExSubsetName , vCustomer , 1 );
+	ENDIF;
+#ENDIF;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# Show Subset Alias By Default
+SubsetAliasSet( sDim , sSubsetName , 'Label' );
+SubsetAliasSet( sDim , sExSubsetName , 'Label' );
+
+#endregion
