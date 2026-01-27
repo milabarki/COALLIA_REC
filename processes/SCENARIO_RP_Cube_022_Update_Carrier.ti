@@ -1,0 +1,238 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SCENARIO_RP_Cube_022_Update_Carrier
+# Description : Transfer Unknown data from 071 to 022
+# Created by : MBO
+# Date : 09/05/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '071_Carrier';
+sCubeTarget = '022_Input_Pilot';
+
+
+## Ownership
+IF( pStatus @<> 'N' );
+	PROCESSQUIT;
+ENDIF;
+
+zOrganization = DimensionElementPrincipalName( 'Organization_Pilot' , pOrganization );
+zCustomer = DimensionElementPrincipalName( 'Customer_Actual' , pCustomer );
+zCarrier = DimensionElementPrincipalName( 'Carrier' , pCarrier );
+zTrade = DimensionElementPrincipalName( 'Trade' , pTrade );
+zScenario = pScenario;
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' |sCubeSource| '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pScenario  , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Customer
+sDim = 'Customer_Actual';
+IF ( ELLEV( sDim , zCustomer ) =0 );
+	IF( SubsetExists( sDim, sSubsetName ) = 1 );
+		SubsetDeleteAllElements( sDim , sSubsetName );
+	ELSE;
+		SubsetCreate( sDim , sSubsetName, 1 );
+	ENDIF;
+
+	SubsetElementInsert( sDim , sSubsetName , zCustomer , 1 );
+
+	ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+ENDIF;
+
+#-- Subset creation on dimension Carrier
+sDim = 'Carrier';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF ( ELLEV( sDim , zCarrier ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetName , zCarrier , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , zCarrier, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Trade
+sDim = 'Trade';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF ( ELLEV( sDim , zTrade ) =0 );
+
+	SubsetElementInsert( sDim , sSubsetName , zTrade , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , zTrade, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension z_List_Element
+sDim = 'z_List_Element';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Flag' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+vDim_Month = 'Months';
+
+#-- Check Carrier modification
+
+vTargetCarrier = CELLGETS( sCubeSource ,zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Carrier_'|pType|'_Target' );
+IF ( vTargetCarrier@<>'');
+	vCarrier = DimensionElementPrincipalName('Carrier', vTargetCarrier);
+ELSE; 
+	ITEMSKIP;
+ENDIF;
+
+##-- Check each months
+
+i=1;
+WHILE ( i <= 12 );
+	IF( LONG( numbertostring ( i ) ) =1 );
+		zMonth_Label = '0' | numbertostring ( i );
+	ELSEIF( LONG( numbertostring ( i ) ) =2 );
+		zMonth_Label = numbertostring ( i );
+	ENDIF;
+
+	zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+
+	##-- Copy Value from origin
+	vValue = CELLGETN( sCubeTarget , zScenario, zMonth , Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator  );
+
+	##-- Paste value on new POL/POD/Carrier/Trade
+	CELLINCREMENTN (vValue , sCubeTarget , zScenario, zMonth , vCarrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator );
+	CELLPUTN (0 , sCubeTarget , zScenario, zMonth , Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator );
+
+	i = i + 1;
+END;
+
+
+CELLPUTN( 0 , sCubeSource ,zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Flag' );
+CELLPUTS( '' , sCubeSource ,zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator ,  'Carrier_'|pType|'_Target' );
+
+
+## New Business / New Customer Status
+vNC = CELLGETN ( sCubeTarget , zScenario, 'TOTAL_VALUE' , Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual ,'New_Customer_'|pType  );
+
+IF ( vNC <> 0 );
+	CELLPUTN (vNC, sCubeTarget , zScenario, 'TOTAL_VALUE' , vCarrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual ,'New_Customer_'|pType  );
+ELSE;
+	CELLPUTN (1 , sCubeTarget , zScenario, 'TOTAL_VALUE' ,  vCarrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual ,'New_Business_'|pType  );
+ENDIF;
+
+# RAZ 
+CELLPUTN (0 , sCubeTarget , zScenario, 'TOTAL_VALUE' , Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual ,'New_Business_'|pType  );
+CELLPUTN (0 , sCubeTarget , zScenario, 'TOTAL_VALUE' , Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual ,'New_Customer_'|pType  );
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

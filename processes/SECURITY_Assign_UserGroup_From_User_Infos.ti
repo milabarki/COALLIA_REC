@@ -1,0 +1,425 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Project : RUBIKS BUDGET
+# Process : SECURITY_Assign_UserGroup_From_User_Infos
+# Description : Assign the group to the users by reading the user Organization attribute from the Cube User_Infos
+# Created by : MBO
+# Date : 26/04/2018
+####################################
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimClient = '}Clients';
+sDimGroup = '}Groups';
+sCubeInfo = 'z03_User_Infos';
+sCubeSecu = '}ClientGroups';
+sCubeSettings = '}ClientSettings';
+sCubeParam = 'z01_Admin_Param';
+
+sInstanceName = CELLGETS( sCubeParam , 'INSTANCE_NAME' , 'STR_VAR_S' );
+
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSecu | '_' | vTM1USER | '_' | pUser  | '_' |  GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |   pUser | '_' |GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |  pUser  | '_' |GetProcessName() ;
+sSubsetNameTarget = '}Subset_Target_Cube_' | sCubeSecu | '_' | vTM1USER | '_' | pUser  | '_' |  GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+#-- Subset creation on dimension }Client
+sDim = sDimClient;
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+IF( pUser@<>'');
+	SubsetElementInsert( sDim , sSubsetName , pUser , 1 );
+ELSE;
+
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+
+		vElem = DIMNM( sDimClient , i );
+		IF( vElem @<> 'Admin' & vElem @<> 'DataAdmin' & vElem @<> 'SecurityAdmin');
+			SubsetElementInsert( sDim , sSubsetName , vElem , 1 );
+		ENDIF;
+		i = i + 1;
+
+	END;
+
+ENDIF;
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeSecu , sViewNameTarget,1 );
+
+#-- Subset creation on dimension }Client
+sDim = sDimClient;
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+
+IF( pUser@<>'');
+	SubsetElementInsert( sDim , sSubsetNameTarget , pUser , 1 );
+ELSE;
+
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+
+		vElem = DIMNM( sDim , i );
+		IF( vElem @<> 'Admin' & vElem @<> 'DataAdmin' & vElem @<> 'SecurityAdmin'  );
+			SubsetElementInsert( sDim , sSubsetNameTarget , vElem , 1 );
+		ENDIF;
+		i = i + 1;
+
+	END;
+
+ENDIF;
+ViewSubsetAssign( sCubeSecu , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+IF (pInit=1);
+	ViewZeroOut( sCubeSecu , sViewNameTarget );
+ENDIF;
+
+# ==================================================================================
+# -- DATASOURCE
+# ==================================================================================
+DataSourceNameForServer = sDimClient ;
+DataSourceNameForClient = sDimClient ;
+DataSourceType = 'SUBSET';
+
+DataSourceDimensionSubset = sSubsetName;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- ASSIGNATION CLIENT/GROUP
+# ==================================================================================
+
+sOperational = CELLGETS( sCubeInfo , vUser , 'Operational' );
+sPilotAir =  CELLGETS( sCubeInfo , vUser , 'Pilot_Air' );
+sPilotSea =  CELLGETS( sCubeInfo , vUser , 'Pilot_Sea' );
+sBOAdmin = CELLGETS( sCubeInfo , vUser , 'BO_Admin' );
+sMOAdmin = CELLGETS( sCubeInfo , vUser , 'MO_Admin' );
+sHFOAdmin = CELLGETS( sCubeInfo , vUser , 'HFO' );
+sUserAdmin = CELLGETS( sCubeInfo , vUser , 'User_Admin' );
+
+#Access to Reset Password ( Only for User Admin)
+IF( sUserAdmin @= 'Y' );
+	CELLPUTS( 'A0_User_Admin' ,  sCubeSecu , vUser, 'A0_User_Admin');
+ELSE;
+	CELLPUTS( '' ,  sCubeSecu , vUser, 'A0_User_Admin');
+	CELLPUTS( 'N', sCubeInfo , vUser , 'User_Admin' );
+ENDIF;
+
+
+
+
+#Access to Admin Reporting 
+IF( sBOAdmin@='Y');
+	CELLPUTS('AGR3_REPORT_ADMIN_OPS' ,  sCubeSecu , vUser, 'AGR3_REPORT_ADMIN_OPS');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'AGR3_REPORT_ADMIN_OPS');
+	CELLPUTS('N' ,  sCubeInfo , vUser, 'BO_Admin');
+ENDIF;
+
+IF( sMOAdmin@='Y');
+	CELLPUTS('AGR4_REPORT_ADMIN_PILOT' ,  sCubeSecu , vUser, 'AGR4_REPORT_ADMIN_PILOT');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'AGR4_REPORT_ADMIN_PILOT');
+	CELLPUTS('N' ,  sCubeInfo , vUser, 'MO_Admin');
+ENDIF;
+
+IF( sHFOAdmin@='Y');
+	CELLPUTS('AGR5_REPORT_HFO' ,  sCubeSecu , vUser, 'AGR5_REPORT_HFO');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'AGR5_REPORT_HFO');
+	CELLPUTS('N' ,  sCubeInfo , vUser, 'HFO');
+ENDIF;
+
+####### HFO SECURITY #########
+############################
+
+IF ( sHFOAdmin@='Y');
+
+	sDimOrga = 'Organization';
+
+	cpt = 1;
+	Nb_Orga_Secu = 10;
+	WHILE(cpt <= Nb_Orga_Secu);
+
+		sAttr_Orga = 'Organization_Security_' | numbertostring(cpt);
+		sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+		sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+
+		IF( sClientOrga @<> '' );
+
+			# -- Retrieve the group name
+			sGroupName = 'R_' | sClientOrga ;
+
+			# -- Assign the group to the user
+			IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+				CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+			ENDIF;
+
+		ENDIF;
+	
+		cpt=cpt+1;
+	
+	END;
+
+	cpt = 1;
+	Nb_Orga_Secu = 5;
+	WHILE(cpt <= Nb_Orga_Secu);
+
+		sAttr_Orga = 'Sales_Security_' | numbertostring(cpt);
+		sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+		sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+
+		IF( sClientOrga @<> '' );
+
+			# -- Retrieve the group name
+			sGroupName = 'R_' | sClientOrga ;
+
+			# -- Assign the group to the user
+			IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+				CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+			ENDIF;
+
+		ENDIF;
+	
+		cpt=cpt+1;
+	
+	END;
+
+ELSE;
+	CELLPUTS( 'N',sCubeInfo , vUser , 'HFO' );
+ENDIF;
+
+####### OPS SECURITY #########
+############################
+
+IF ( sOperational@='C' %  sOperational@='R');
+
+	sDimOrga = 'Organization';
+
+	CELLPUTS('A1_OPS' ,  sCubeSecu , vUser, 'A1_OPS');
+	CELLPUTS('AGR1_REPORT_OPS' ,  sCubeSecu , vUser, 'AGR1_REPORT_OPS');
+
+	cpt = 1;
+	Nb_Orga_Secu = 10;
+	WHILE(cpt <= Nb_Orga_Secu);
+
+		sAttr_Orga = 'Organization_Security_' | numbertostring(cpt);
+		sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+		sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+		IF( sClientOrga @<> '' );
+
+			# -- Retrieve the group name
+			sGroupName = 'R_' | sClientOrga ;
+
+			# -- Assign the group to the user
+			IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+				CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+			ENDIF;
+		
+			# -- Retrieve the NC group name
+			sGroupName = 'R_' | sClientOrga|'_NC' ;
+
+			# -- Assign the group to the user
+			IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+				CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+			ENDIF;
+
+		ENDIF;
+	
+		
+
+
+		cpt=cpt+1;
+	
+	END;
+
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'A1_OPS');
+	CELLPUTS('' ,  sCubeSecu , vUser, 'AGR1_REPORT_OPS');
+	CELLPUTS( 'N' , sCubeInfo , vUser , 'Operational' );
+ENDIF;
+
+
+
+
+####### PILOT SECURITY #########
+#############################
+
+IF ( sPilotAir @='C' % sPilotAir@='R' % sPilotSea @='C' % sPilotSea @='R');
+
+	sDimOrga = 'Organization_Pilot';
+
+	CELLPUTS('A2_PILOT' ,  sCubeSecu , vUser, 'A2_PILOT');
+	CELLPUTS('AGR2_REPORT_PILOT' ,  sCubeSecu , vUser, 'AGR2_REPORT_PILOT');
+
+	cpt = 1;
+	Nb_Orga_Secu = 10;
+	WHILE(cpt <= Nb_Orga_Secu);
+
+		sAttr_Orga = 'Organization_Security_' | numbertostring(cpt);
+		sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+		sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+
+		IF( sClientOrga @<> '' );
+
+			# -- Retrieve the group name
+			sGroupName = 'R_' | sClientOrga ;
+
+			# -- Assign the group to the user
+			IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+				CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+			ENDIF;
+
+		ENDIF;
+	
+		cpt=cpt+1;
+	
+	END;
+
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'A2_PILOT');
+	CELLPUTS('' ,  sCubeSecu , vUser, 'AGR2_REPORT_PILOT');
+
+ENDIF;
+
+# Access to Air data
+IF ( sPilotAir @='C' % sPilotAir@='R');
+	CELLPUTS('B1_PILOT_AIR' ,  sCubeSecu , vUser, 'B1_PILOT_AIR');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'B1_PILOT_AIR');
+	CELLPUTS( 'N' , sCubeInfo , vUser , 'Pilot_Air' );
+ENDIF;
+
+# Access to Sea data
+IF ( sPilotSea @='C' % sPilotSea @='R');
+	CELLPUTS('B2_PILOT_SEA' ,  sCubeSecu , vUser, 'B2_PILOT_SEA');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'B2_PILOT_SEA');
+	CELLPUTS( 'N' , sCubeInfo , vUser , 'Pilot_Sea' );
+ENDIF;
+
+
+
+
+# ==================================================================================
+# -- HOMEPAGE MANAGEMENT
+# ==================================================================================
+
+IF(sOperational@<>'N');
+
+	IF( sPilotAir @<>'N' & sPilotSea@<>'N' );
+		sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage4.xlsx';
+		CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+		CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+	ELSE;
+		IF(sPilotAir@<>'N' );
+			sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage3.xlsx';
+			CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+			CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+		ELSE;
+			IF(sPilotSea@<>'N' );
+				sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage2.xlsx';
+				CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+				CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+			ELSE;
+				sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage1.xlsx';
+				CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+				CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+
+			ENDIF;
+
+		ENDIF;		
+
+	ENDIF;
+ELSE;
+
+	IF( sPilotAir@<>'N' & sPilotSea@<>'N' );
+		sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage7.xlsx';
+		CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+		CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+	ELSE;
+		IF(sPilotAir @<>'N' );
+			sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage5.xlsx';
+			CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+			CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+		ELSE;
+			IF(sPilotSea@<>'N' );
+				sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage6.xlsx';
+				CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+				CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+			ELSE;
+				sWebPage = 'TM1://'| sInstanceName |'/blob/PUBLIC/.\}Externals\Homepage8.xlsx';
+				CELLPUTS( sWebPage , sCubeSettings , vUser , 'Web Home Page Object' );	
+				CELLPUTS( 'TRUE' , sCubeSettings , vUser , 'Web Collapse NavTree OnStart' );	
+
+			ENDIF;
+
+		ENDIF;		
+
+	ENDIF;
+
+ENDIF;
+
+########################################################
+#
+# ACTIVIE SESSISION LIMITATION ( 2 sessions max )
+#
+########################################################
+
+CELLPUTN( 25 , '}ClientProperties', vUser, 'MaximumPorts');
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

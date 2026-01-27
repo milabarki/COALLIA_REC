@@ -1,0 +1,169 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_RP_Cube_Hold_Management
+# Description : Lock Total TEUS & CW
+# Created by : MBO
+# Date: 02/05/2019
+####################################
+
+# ==================================================================================
+# --  PROCESS CONTROL
+# ==================================================================================
+
+# Control
+IF ( pStatus @<> 'N');
+	PROCESSQUIT;
+ENDIF;
+
+# ==================================================================================
+# -- HOLD CUBE CREATION
+# ==================================================================================
+
+sTM1USER =  TM1USER();
+sCubeTarget= '}Hold_'|sTM1USER|'_}}_011_OPS_Yearly_Input'; 
+IF( CubeExists(sCubeTarget) =0 );
+	CUBECREATE(sCubeTarget, 'Currency' , 'Scenario' , 'Activity','Geo_From','Geo_To','Organization','Customer_Top','Indicators_Op', '}Hold' );
+ENDIF;
+
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '011_OPS_Yearly_Input' ;
+sSourceScenario = pScenario;
+pControl = 0 ;
+pCount = 0;
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | sTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | sTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | sTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | sTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , sSourceScenario, 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+IF ( pOrganization @<> 'TOTAL_ORGANIZATION' );
+	sDim = 'Organization';
+	IF( SubsetExists( sDim, sSubsetName ) = 1 );
+		SubsetDeleteAllElements( sDim , sSubsetName );
+	ELSE;
+		SubsetCreate( sDim , sSubsetName, 1 );
+	ENDIF;
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+	ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+ENDIF;
+
+#-- Subset creation on dimension Indicators_Op
+
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'OTH_TEUS' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'FP_TEUS' , 2 );
+SubsetElementInsert( sDim , sSubsetName , 'OTH_CW' , 3 );
+SubsetElementInsert( sDim , sSubsetName , 'FP_CW' , 4 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- TEUS & CW consolidation Lock
+# ==================================================================================
+
+IF(  SCAN('TEUS' , Indicators_Op )<>0 );
+
+	vStatus = CELLGETS( sCubeTarget , Currency, Scenario,Activity,Geo_From,Geo_To,Organization,Customer_Top,'TOTAL_TEUS', 'HoldStatus');
+	IF( vStatus @='C' & pControl = 0 );
+		EXECUTEPROCESS('SCENARIO_RP_Cube_Hold_Management_Clean','pOrganization', Organization , 'pScenario' , Scenario);
+		PROCESSBREAK;
+	ELSE;
+		CELLPUTS( 'C',sCubeTarget , Currency, Scenario,Activity,Geo_From,Geo_To,Organization,Customer_Top,'TOTAL_TEUS', 'HoldStatus');
+		pControl =1;
+	ENDIF;
+
+ENDIF;
+
+
+
+IF(  SCAN('CW' , Indicators_Op )<>0 );
+
+	vStatus = CELLGETS( sCubeTarget , Currency, Scenario,Activity,Geo_From,Geo_To,Organization,Customer_Top,'TOTAL_CW', 'HoldStatus');
+	IF( vStatus @='C' & pControl = 0);
+		EXECUTEPROCESS('SCENARIO_RP_Cube_Hold_Management_Clean','pOrganization', Organization , 'pScenario' , Scenario);
+		PROCESSBREAK;
+	ELSE;
+		CELLPUTS( 'C',sCubeTarget , Currency, Scenario,Activity,Geo_From,Geo_To,Organization,Customer_Top,'TOTAL_CW', 'HoldStatus');
+		pControl =1;
+	ENDIF;
+ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#endregion

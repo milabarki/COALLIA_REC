@@ -1,0 +1,107 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+####################################
+# Process : ARG_SCENARIO_ADM_IMP_Cube_z10_Effect_Calculation_STEP1
+# Description : z10 data loading from 030
+# Created by : MBO
+# Date : 12/06/2020
+####################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = 'z10_Argos_Effect_YTD';
+sCubeTarget2 = '031_Argos_Budget_Effect';
+sCubeSource = '030_Argos_Budget';
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+ViewCreate( sCubeTarget2 , sViewNameTarget,1);
+ViewZeroOut( sCubeTarget2 , sViewNameTarget );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+CELLINCREMENTN( Value , sCubeTarget2 , Currency , Months , ARGOS_Scenario, ARGOS_Activity ,ARGOS_Organization ,ARGOS_Indicators );
+
+
+IF( ARGOS_Indicators@='GM' % ARGOS_Indicators@='TO' % ARGOS_Indicators@='CW' % ARGOS_Indicators@='TEUS');
+	sDim='Months_YTD';
+	sDim2='Months';
+
+	i = 0;
+	iMax =DIMSIZ(sDim);
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim2 , vElt, Months ) <> 0);
+			CELLINCREMENTN( Value , sCubeTarget , Currency , vElt , ARGOS_Scenario, ARGOS_Activity ,ARGOS_Organization ,ARGOS_Indicators );
+		ENDIF;
+
+		i = i+1;
+	END;
+ENDIF;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion

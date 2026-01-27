@@ -1,0 +1,28 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Customer_Top_ExceptBLX",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Dim_Customer_Top_ExceptBLX.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"Customer_Top",
+		"dataSourceNameForClient":"Customer_Top",
+		"subset":"}RP_List_Customer_Top"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vCustomer",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797032700014",
+	"VariablesUIData": [
+		"VarType=32\fColType=827\f"
+	]
+}

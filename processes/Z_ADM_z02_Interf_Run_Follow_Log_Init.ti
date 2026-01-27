@@ -1,0 +1,75 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : Z_ADM_z02_Interf_Run_Follow_Log_Init
+# Description : Init log
+# Created By : MBO
+# Date : 04/04/2017
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+zCube_Process ='z02_Inter_Run_Follow';
+zStartingDate = TIMST ( NOW , '\Y-\m-\d');
+zLoadingDate = TIMST ( NOW , '\Y-\m-\d  \h:\i:\s') ;
+zDimLoadingTime = 'z_Interf_Loading_Date';
+
+
+# ==================================================================================
+# -- Date Insert
+# ==================================================================================
+
+IF( DIMIX ( zDimLoadingTime, zStartingDate ) = 0 );
+              DIMENSIONELEMENTINSERT( zDimLoadingTime , '' , zStartingDate , 'N' );
+ENDIF;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#================================================================
+#  CLEAR VALUE
+#================================================================
+
+
+zDimIndic = 'z_Interf_Result_Indic';
+i=1;
+nSize = DIMSIZ(zDimIndic);
+
+WHILE( i<=nSize );
+              sIndic = DIMNM(zDimIndic, i);
+              IF(DTYPE(zDimIndic, sIndic) @= 'N');
+                            CELLPUTN(0, zCube_Process, pProcess, zStartingDate, sIndic);
+              ELSEIF(DTYPE(zDimIndic, sIndic) @= 'S');
+                            CELLPUTS(' ', zCube_Process, pProcess, zStartingDate, sIndic);
+              ENDIF;
+              i=i+1;
+END;
+
+#================================================================
+#  INIT START DATE
+#================================================================
+
+CELLPUTS ( zLoadingDate , zCube_Process , pProcess ,zStartingDate, 'Start_Date' );
+
+#endregion

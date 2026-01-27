@@ -1,0 +1,188 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+##################################################################################
+# Project : RUBIKS
+# Process : YAL_ADM_Dim_Transco_CAO
+# Description : Update Orga YAL
+# Created by : MBA-Datatilt
+# Date : 19/06/2025
+##################################################################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+vDim = 'Organization_YAL';
+sCubeSource = '100_YAL_Transco';
+
+
+DIMENSIONDELETEALLELEMENTS ( vDim);
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+vTotal='TOTAL_ORGANIZATION';
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+
+# View creation
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'Vue_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Level';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Organization';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Code_Hermes';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Organization -------------------------------------------------------------------------------------
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElt = DIMNM ( sDim , i) ;
+	IF ( ELLEV ( sDim  , vElt ) = 0 );
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension z_Str_Var -------------------------------------------------------------------------------------------
+sDim1 = 'z_Str_Var';
+IF( SubsetExists( sDim1, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim1 , sSubsetName );
+ELSE;
+	SubsetCreate( sDim1 , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim1 , sSubsetName , 'STR_VAR_S' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim1 , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#==========================================================================================
+# INSERT DIMENSION ELEMENTS 
+#==========================================================================================
+
+vER = 'ER_'  | SUBST( ATTRS ( sDim , Organization ,'ER' ) , 4 , LONG (ATTRS ( sDim , Organization ,'ER' )) - 3 ) ;
+
+vOrga_Yal = Organization|'_'|Value;
+
+# -- Insert elements level 0 ------------------------------------------------------------------------------------------------------------------------------
+IF(  DIMIX( vDim , vOrga_Yal  ) = 0 );
+	DIMENSIONELEMENTINSERT(vDim,'', vOrga_Yal ,'n');
+ENDIF;
+
+# -- Insert & assigne elements  to Conso level ----------------------------------------------------------------------------------------------------
+IF ( DIMIX( vDim , vER) = 0 );
+	DIMENSIONELEMENTINSERT(vDim,'', vER  ,'c');
+	DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal, vER,1.000000);
+ENDIF;
+
+		
+DIMENSIONELEMENTCOMPONENTADD(vDim, vER, vOrga_Yal ,1.000000);
+
+
+	
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+vER = 'ER_'  | SUBST( ATTRS ( sDim , Organization ,'ER' ) , 4 , LONG (ATTRS ( sDim , Organization ,'ER' )) - 3 ) ;
+vOrga_Yal = Organization|'_'|Value;
+
+# -- Attrubute Load
+ATTRPUTS('ER',vDim, vER , 'Level');
+ATTRPUTS(Organization ,vDim, vOrga_Yal  , 'Organization');
+ATTRPUTS(Value ,vDim, vOrga_Yal  , 'Code_Hermes');
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+
+
+
+
+#endregion

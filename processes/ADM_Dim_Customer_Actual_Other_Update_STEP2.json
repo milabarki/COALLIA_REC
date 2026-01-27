@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Customer_Actual_Other_Update_STEP2",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Dim_Customer_Actual_Other_Update_STEP2.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "17679703270008"
+}

@@ -1,0 +1,14 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_Files_Folders_Cleaning",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_Files_Folders_Cleaning.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "17679703340001",
+	"VariablesUIData": []
+}

@@ -1,0 +1,35 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Currencies",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM_Dim_Currencies.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV",
+		"dataSourceNameForClient":"RUBIKS_DEV",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT\r\n\tCUR_CD,\r\n\tCUR_SCENARIO_CD,\r\n\tCUR_RATE_EUR\r\nFROM \r\n\t[BUD].[DIM_CURRENCY]"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"CUR_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703270000"
+}

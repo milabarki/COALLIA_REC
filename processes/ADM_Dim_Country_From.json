@@ -1,0 +1,42 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Country_From",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM_Dim_Country_From.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV",
+		"dataSourceNameForClient":"RUBIKS_DEV",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT\r\nLOC_COUNTRY_CD,\r\nLOC_COUNTRY_LB\r\nFROM [BUD].[DIM_LOCATION_FULL]\r\nORDER BY LOC_COUNTRY_LB"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"LOC_COUNTRY_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"LOC_COUNTRY_LB",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797032600013"
+}

@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"BUDGET_RP_IMP_Cube_Data_Loading_MASTER",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"BUDGET_RP_IMP_Cube_Data_Loading_MASTER.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pOrganization",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703300007"
+}

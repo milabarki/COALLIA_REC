@@ -1,0 +1,213 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_N_IMP_Cube_014_Data_Loading
+# Description : 014 - BUDGET_N Data Loading
+# Created by : MBO
+# Date : 27/04/2021
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeTarget = '014_OPS_Global';
+sCubeParam = 'z01_Admin_Param';
+
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+# -- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'BUDGET_N' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'GM' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'TO' , 2 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FT' , 3 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'JobFile_Nb' , 4 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'OTH_TEUS' , 5 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'OTH_CW' , 6 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'TEUS_TEMP' , 7 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'CW_TEMP' , 8 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+sZone = CELLGETS( sCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=CELLGETS(sCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(sCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(sCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+
+vDim = 'Organization_Full';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Customer_Top';
+IF(DIMIX(vDim , CLI_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | CLI_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Activity';
+IF(DIMIX(vDim , ACT_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ACT_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Geo_From';
+IF(DIMIX(vDim , LOC_LOAD_SUBCONT_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | LOC_LOAD_SUBCONT_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Geo_To';
+IF(DIMIX(vDim ,LOC_OFFLOAD_SUBCONT_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | LOC_OFFLOAD_SUBCONT_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+Level = ELLEV('Customer_Top', CLI_CD);
+CLI_CD=IF( Level<>0 , CLI_CD|'_X' , CLI_CD );
+vProduct = IF(CLI_CD @= 'TOTAL_OTHERS', 'XX', ATTRS('Customer_Full', CLI_CD, 'Product'));
+
+CELLPUTN( GM_LCY , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD , vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'GM');
+CELLPUTN( TO_LCY , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'TO');
+
+CELLPUTN( GM_EUR , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'GM');
+CELLPUTN( TO_EUR , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'TO');
+
+CELLPUTN( FT , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'FT');
+CELLPUTN( JF_NB , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'JobFile_Nb');
+CELLPUTN( FT , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'FT');
+CELLPUTN( JF_NB , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'JobFile_Nb');
+
+CELLPUTN( TEUS_NB , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'TEUS_TEMP');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'CW_TEMP');
+CELLPUTN( TEUS_NB , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'TEUS_TEMP');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'CW_TEMP');
+
+CELLPUTN( TEUS_NB , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'OTH_TEUS');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,'LCY',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD , vProduct ,  LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'OTH_CW');
+CELLPUTN( TEUS_NB , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD ,  vProduct , LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'OTH_TEUS');
+CELLPUTN( CHG_WEIGHT , sCubeTarget,'EUR',SCENARIO_CD,'N1',MONTH_CD  , ACT_CD , vProduct ,  LOC_LOAD_SUBCONT_CD ,  LOC_OFFLOAD_SUBCONT_CD , ORG_OCC_CD ,  CLI_CD , 'OTH_CW');
+
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

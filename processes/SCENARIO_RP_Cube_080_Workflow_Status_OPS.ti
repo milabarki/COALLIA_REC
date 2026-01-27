@@ -1,0 +1,297 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project :  RUBIKS BUDGET
+# Process : SCENARIO_RP_Cube_080_Workflow_Status_OPS
+# Description : Submit / take ownership steps
+# Created by : MBO
+# Date : 01/05/2018
+####################################
+
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+
+### Workflow Cubes ###
+sCubeWKL1 = '080_Workflow';
+sCubeWKL2 = '081_Workflow_By_User';
+
+### Info Cube ###
+sCubeInfos = 'z03_User_Infos';
+
+### Securitry Cubes ###
+sCubeSecurity = '}CellSecurity_011_OPS_Yearly_Input';
+sCubeSecurity1 = '}CellSecurity_012_OPS_Monthly_Input';
+sCubeSecurity2 = '}CellSecurity_091_New_Business';
+sCubeSecurity3 ='}CellSecurity_013_OPS_Monthly_Breakdown';
+sCubeSecurity4 = '}ClientGroups';
+sCubeSecurity5 ='z03_User_Infos';
+
+### Dimensions ###
+sDimOrga = 'Organization';
+
+### other parameter ###
+sTM1USER =  TM1USER();
+sGroup =  pOrganization;
+pType = 'OPS';
+ 
+### Availability control ###
+vAv = CELLGETS ( sCubeWKL1 , pScenario , pType ,pOrganization  ,'Availability');
+IF( vAv@<>'Unlock');
+	PROCESSQUIT;
+ENDIF;
+
+### Level Control ###
+IF(ELLEV( sDimOrga, pOrganization  ) <> 0 );
+	PROCESSQUIT;
+ENDIF;
+
+
+### Write Access Control ###
+sAccess = CELLGETS( sCubeSecurity5,sTM1USER , 'Operational' );
+
+IF ( sAccess@<>'C');
+	PROCESSQUIT;
+ENDIF;
+
+# ==================================================================================
+# -- TAKEOWNERSHIP
+# ==================================================================================
+
+IF( pAction @= 'Take' );
+
+	### Control ###
+
+	# User in progress
+	vLock = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Lock' ); 
+	IF ( vLock@='N');
+		PROCESSQUIT;
+	ENDIF;
+
+	vDate = TIMST( NOW , '\d/\m/\Y \hh\i' );
+	vName =  SUBST(CELLGETS( sCubeInfos ,  sTM1USER  ,'First_Name'),1,1) |'. '| CELLGETS( sCubeInfos ,  sTM1USER  ,'Last_Name');
+
+	vContributor_Status = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Contributor_Status' ); 
+
+	 ## First Action
+	IF ( vContributor_Status@='Not Started');
+		CELLPUTN ( 1 ,sCubeWKL1, pScenario ,  pType ,pOrganization , 'Flag_Not_Started' ); 
+		CELLPUTS ( vDate ,sCubeWKL1, pScenario , pType ,pOrganization ,'Start_Date' ); 
+		CELLPUTS ( vName ,sCubeWKL1, pScenario ,  pType ,pOrganization ,'Contributor_Name' ); 
+	ENDIF;
+
+	#CELLPUTS ( 'N' ,sCubeWKL1, pScenario , pType , pOrganization  ,'Lock' ); 
+	CELLPUTN ( 1 ,sCubeWKL1, pScenario ,  pType , pOrganization ,'Flag_In_Progress' ); 
+	CELLPUTS ( vName ,sCubeWKL1, pScenario , pType , pOrganization , 'Contributor_Name' ); 
+
+	CELLPUTN ( 1 ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Flag_Not_Started' ); 
+	CELLPUTS ( vDate ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization,'Start_Date' ); 
+	CELLPUTS ( '' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Submit_Date' ); 
+	#CELLPUTS ( 'N' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Lock' ); 
+	CELLPUTN ( 1 ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization ,'Flag_In_Progress' ); 
+	CELLPUTS ( vName ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization  ,'Contributor_Name' ); 
+	CELLPUTS ( '' ,sCubeWKL2, pScenario , pType , sTM1USER, pOrganization ,'Submit_Name');
+
+
+######### FORECAST ###########
+###########################
+
+	IF ( pScenario @= 'FCT_N' );
+
+		sMod = 'C_';
+		CELLPUTS( sMod|sGroup , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+ 
+		## MAJ Sécurité 
+		vDim = 'Months';
+		i = 8;
+		iMax =  12;
+		WHILE ( i <= iMax );
+			vElt = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( 'WRITE' , sCubeSecurity1 , pScenario , vElt,sGroup, sMod|sGroup );				
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		 ## Indicators Security
+		vDim = 'Indicators_Op';
+		i = 1;
+		iMax = DIMSIZ(vDim);
+		WHILE ( i <= iMax );
+			vElt = DIMNM (vDim , i);
+			IF ( ATTRN(vDim ,vElt , 'Flag Forecast') =1 );
+				CELLPUTS ( 'WRITE' , sCubeSecurity , pScenario, sGroup, vElt,sMod|sGroup );				
+			ENDIF;
+			i = i +1;
+		END;
+
+		CELLPUTS ( 'WRITE' , sCubeSecurity2 , pScenario , sGroup, sMod|sGroup );
+
+	ENDIF;
+
+
+
+######### BUDGET ###########
+###########################
+
+	IF ( pScenario @= 'BUDGET_N+1' );
+
+		sMod = 'C_';
+		CELLPUTS( sMod|sGroup , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+
+ 
+		## MAJ Sécurité 
+		vDim = 'Months';
+		i = 1;
+		iMax =  12;
+		WHILE ( i <= iMax );
+			vElt = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( 'WRITE' , sCubeSecurity1 , pScenario , vElt,sGroup, sMod|sGroup );
+				CELLPUTS ( 'WRITE' , sCubeSecurity3 , vElt,sGroup, sMod|sGroup );
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		 ## Indicators Security
+		vDim = 'Indicators_Op';
+		i = 1;
+		iMax = DIMSIZ(vDim);
+		WHILE ( i <= iMax );
+			vElt = DIMNM (vDim , i);
+			IF ( ATTRN(vDim ,vElt , 'Flag Budget') =1 );
+				CELLPUTS ( 'WRITE' , sCubeSecurity , pScenario, sGroup, vElt,sMod|sGroup );				
+			ENDIF;
+			i = i +1;
+		END;
+
+		CELLPUTS ( 'WRITE' , sCubeSecurity2 , pScenario ,  sGroup, sMod|sGroup );
+
+	ENDIF;
+
+
+ENDIF;
+
+# ==================================================================================
+# -- SUBMIT
+# ==================================================================================
+
+IF( pAction @= 'Submit' );
+
+	vDate = TIMST( NOW , '\d/\m/\Y \hh\i' );
+	vName =  SUBST(CELLGETS( sCubeInfos ,  sTM1USER  ,'First_Name'),1,1) |'. '| CELLGETS( sCubeInfos ,  sTM1USER  ,'Last_Name');
+
+	vContributor_Status = CELLGETS ( sCubeWKL1, pScenario , pType ,pOrganization  ,'Contributor_Status' ); 
+	IF ( vContributor_Status@='In Progress');
+		CELLPUTS ( vDate ,sCubeWKL1, pScenario , pType ,pOrganization  ,'Submit_Date' ); 
+		CELLPUTN ( 0 ,sCubeWKL1, pScenario , pType ,pOrganization  ,'Flag_In_Progress' ); 
+		CELLPUTS ( vName ,sCubeWKL1, pScenario ,  pType ,pOrganization  ,'Submit_Name' ); 
+	ENDIF;
+
+
+	CELLPUTS ( '' ,sCubeWKL1, pScenario ,pType , pOrganization ,'Contributor_Name' );
+	#CELLPUTS ( 'Y' ,sCubeWKL1, pScenario ,pType , pOrganization,'Lock' );
+	CELLPUTS ( vDate ,sCubeWKL2, pScenario ,pType , sTM1USER, pOrganization ,'Submit_Date' ); 
+	#CELLPUTS ( 'Y' ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Lock' ); 
+	CELLPUTN ( 0 ,sCubeWKL2, pScenario ,  pType , sTM1USER, pOrganization ,'Flag_In_Progress' ); 
+
+######### FORECAST ###########
+###########################
+
+	IF ( pScenario @= 'FCT_N' );
+
+		sMod = 'C_';
+		CELLPUTS( '' , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+ 
+		## MAJ Sécurité 
+		vDim = 'Months';
+		i = 8;
+		iMax =  12;
+		WHILE ( i <= iMax );
+			vElt = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( '' , sCubeSecurity1 , pScenario , vElt,sGroup, sMod|sGroup );
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		 ## Indicators Security
+		vDim = 'Indicators_Op';
+		i = 1;
+		iMax = DIMSIZ(vDim);
+		WHILE ( i <= iMax );
+			vElt = DIMNM (vDim , i);
+			IF ( ATTRN(vDim ,vElt , 'Flag Forecast') =1 );
+				CELLPUTS ( '' , sCubeSecurity , pScenario, sGroup, vElt,sMod|sGroup );				
+			ENDIF;
+			i = i +1;
+		END;
+
+		CELLPUTS ( '' , sCubeSecurity2 , pScenario , sGroup, sMod|sGroup );
+
+	ENDIF;
+
+
+######### BUDGET #########
+###########################
+
+
+	IF ( pScenario @= 'BUDGET_N+1' );
+
+		sMod= 'C_';
+		CELLPUTS( '' , sCubeSecurity4 , sTM1USER , sMod|sGroup );
+
+ 
+		## MAJ Sécurité 
+		vDim = 'Months';
+		i = 1;
+		iMax =  12;
+		WHILE ( i <= iMax );
+			vElt = IF( LONG(NumberToString(i))<2 , '0'|NumberToString(i) , NumberToString(i));
+			IF ( ELLEV (vDim , vElt ) = 0 & ELISANC( vDim  , 'TOTAL_YEAR' , vElt) <> 0  ); 
+				CELLPUTS ( '' , sCubeSecurity1 , pScenario , vElt,sGroup, sMod|sGroup );
+				CELLPUTS ( '' , sCubeSecurity3 , vElt,sGroup, sMod|sGroup );
+			ENDIF;
+			i = i + 1 ;
+		END;
+
+		 ## Indicators Security
+		vDim = 'Indicators_Op';
+		i = 1;
+		iMax = DIMSIZ(vDim);
+		WHILE ( i <= iMax );
+			vElt = DIMNM (vDim , i);
+			IF ( ATTRN(vDim ,vElt , 'Flag Budget') =1 );
+				CELLPUTS ( '' , sCubeSecurity , pScenario, sGroup, vElt,sMod|sGroup );				
+			ENDIF;
+			i = i +1;
+		END;
+
+		CELLPUTS ( '' , sCubeSecurity2 , pScenario ,sGroup, sMod|sGroup );
+
+	ENDIF;
+
+
+ENDIF;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

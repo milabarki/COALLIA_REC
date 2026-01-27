@@ -1,0 +1,244 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : ARGOS_BUDGET
+# Process : ARG_ADM_Dim_ARGOS_Customer
+# Description : Init Customer_Top 
+# Created by : MBO
+# Date : 08/02/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'ARGOS_Customer';
+vDim_Orga = 'ARGOS_Organization';
+
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_CUSTOMER';
+vOth = 'TOTAL_OTHERS';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+AttributeToAdd = 'Product';
+AttributeToAddType = 'S';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',vOth,'n');
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,vOth,1.000000);
+
+IF(CLI_CD @= CLI_HQ_CD);
+
+	IF ( ELLEV('Customer_Full' , CLI_CD ) <> 0 );
+
+		DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+		DIMENSIONELEMENTINSERT(vDim,'', CLI_CD|'_X','n');
+		DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_CD,CLI_CD|'_X',1.000000);
+		DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_CD,1.000000);
+	ELSE;
+		DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+		DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_CD,1.000000);
+
+	ENDIF;
+ELSE;
+	DIMENSIONELEMENTINSERT(vDim,'',CLI_HQ_CD,'n');
+	DIMENSIONELEMENTINSERT(vDim,'', CLI_HQ_CD|'_X','n');
+	DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+	DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,CLI_HQ_CD,1.000000);
+	DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_HQ_CD,CLI_HQ_CD|'_X',1.000000);
+	DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_HQ_CD,CLI_CD,1.000000);
+ENDIF;
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Customer',vDim, vTotal , 'Label');
+ATTRPUTS('Total Others',vDim, 'TOTAL_OTHERS' , 'Label');
+
+IF(CLI_CD @= CLI_HQ_CD);
+
+
+	IF ( ELLEV('Customer_Full' , CLI_CD ) <> 0 );
+		ATTRPUTS(CLI_HQ_LB | ' (' | CLI_HQ_CD | ')',vDim, CLI_HQ_CD , 'Label');
+		ATTRPUTS(CLI_HQ_LB | '_X (' | CLI_HQ_CD | '_X)',vDim, CLI_HQ_CD|'_X' , 'Label');
+		ATTRPUTS('XX',vDim, CLI_HQ_CD|'_X' , 'Product');
+	ELSE;
+
+		ATTRPUTS(CLI_LB | ' (' | CLI_CD | ')',vDim, CLI_CD , 'Label');
+		ATTRPUTS(CLI_PRD_CD,vDim, CLI_CD , 'Product');
+
+	ENDIF;
+
+ELSE;
+	ATTRPUTS(CLI_HQ_LB | ' (' | CLI_HQ_CD | ')',vDim, CLI_HQ_CD , 'Label');
+	ATTRPUTS(CLI_HQ_LB | '_X (' | CLI_HQ_CD | '_X)',vDim, CLI_HQ_CD|'_X' , 'Label');
+	ATTRPUTS(CLI_LB | ' (' | CLI_CD | ')',vDim, CLI_CD , 'Label');
+	ATTRPUTS(CLI_PRD_CD,vDim, CLI_CD , 'Product');
+ENDIF;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+
+# Subset Niv0
+sSubsetName = '}RP_List_Level0_'|vDim;
+
+sMDX = '{ORDER({{EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'] )}, 0)}, {['|vDim|'].[TOTAL_OTHERS] })}}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+
+# Subset with HQ
+sSubsetName = '}RP_List_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' & vElt@<>'TOTAL_CUSTOMER'  & ELISPAR( vDim  , 'TOTAL_CUSTOMER' , vElt) <> 0 );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim ,sSubsetName , 'Label' );
+
+
+# Subset for context
+sSubsetName = '}RP_List_Context_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName  );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+#endregion

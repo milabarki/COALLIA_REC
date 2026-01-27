@@ -1,0 +1,81 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Customer_Actual_Init_Other_Update_STEP4
+# Description : Add customer in hierrachy "other"
+# Created by : MBO
+# Date : 06/07/2018
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Customer_Actual_Init';
+sCube = 'z05_Other_Conso';
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- OTH SUBSET
+# ==================================================================================
+sSubsetName= '}Sub_Orga_' |'OTH_'|ORG_OCC_CD ;
+sName = 'OTH_'|ORG_OCC_CD;
+vDim='Customer_Actual_Init';
+
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName );
+ENDIF;
+i = 1;
+k =1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( ELISANC( vDim  , sName , vElt) <> 0 );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#endregion

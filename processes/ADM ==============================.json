@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"ADM ==============================",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ADM ==============================.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "17679703260009"
+}

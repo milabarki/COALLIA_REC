@@ -1,0 +1,83 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_Group_Creation_From_Organization_STEP4
+# Description : Init Organization Availabilty
+# Created by : MBO
+# Date : 18/05/2018
+####################################
+
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sCubeWK = '080_Workflow';
+sDimOrga = 'Organization_Pilot';
+
+
+
+
+# ==================================================================================
+# -- SOURCE ADAPTATION TO TAKE SUBSET ALL AS A SOURCE (WORKS IN EVERY LANGUAGE)
+# ==================================================================================
+DataSourceNameForServer = sDimOrga;
+DataSourceNameForClient = sDimOrga;
+DataSourceType = 'SUBSET';
+DataSourceDimensionSubset = 'ALL';
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- INIT ORGANIZATION AVAILABILITY
+# ==================================================================================
+
+
+
+vValue = CELLGETS( sCubeWK ,'FCT_N','OPS' , vOrganization ,'Availability');
+IF( vValue@='' );
+	CELLPUTS( 'Unlock', sCubeWK , 'FCT_N' ,'OPS',  vOrganization ,'Availability');
+ENDIF;
+
+
+vValue = CELLGETS( sCubeWK ,'BUDGET_N+1','OPS' , vOrganization ,'Availability');
+IF( vValue@='' );
+	CELLPUTS( 'Unlock', sCubeWK , 'BUDGET_N+1' ,'OPS',  vOrganization ,'Availability');
+ENDIF;
+
+
+
+vValue = CELLGETS( sCubeWK ,'BUDGET_N+1','AIR' , vOrganization ,'Availability');
+IF( vValue@='' );
+	CELLPUTS( 'Unlock', sCubeWK , 'BUDGET_N+1' ,'AIR',  vOrganization ,'Availability');
+ENDIF;
+
+vValue = CELLGETS( sCubeWK ,'BUDGET_N+1','SEA' , vOrganization ,'Availability');
+IF( vValue@='' );
+	CELLPUTS( 'Unlock', sCubeWK , 'BUDGET_N+1' ,'SEA',  vOrganization ,'Availability');
+ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

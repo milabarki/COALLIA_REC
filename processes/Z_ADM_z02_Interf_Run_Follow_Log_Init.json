@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_z02_Interf_Run_Follow_Log_Init",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_z02_Interf_Run_Follow_Log_Init.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pProcess",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703340009"
+}

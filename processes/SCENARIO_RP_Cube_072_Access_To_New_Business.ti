@@ -1,0 +1,94 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project :  RUBIKS
+# Process : SCENARIO_RP_Cube_072_Access_To_New_Business
+# Description : Access to New Business interface / 072 cleaning.
+# Created by : MBO
+# Date : 09/05/2018
+####################################
+
+
+# ==================================================================================
+# --  CONTROL
+# ==================================================================================
+
+IF( pStatus @<>'N');
+	PROCESSQUIT;
+ENDIF;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCube = '072_New_Business' ;
+
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCube | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCube | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCube , sViewNameTarget , 1);
+
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , pOrganization , 1 );
+ViewSubsetAssign( sCube , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , pScenario , 1 );
+ViewSubsetAssign( sCube , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , zIndicator , 1 );
+ViewSubsetAssign( sCube , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+ViewZeroOut( sCube , sViewNameTarget );
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

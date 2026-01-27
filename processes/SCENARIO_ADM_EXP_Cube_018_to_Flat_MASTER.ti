@@ -1,0 +1,142 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#####################################
+# Project : RUBIKS
+# Process : SCENARIO_ADM_EXP_Cube_018_to_Flat_MASTER
+# Description : 012 Data export to flat file
+# Created by : MBO
+# Date : 19/05/2021
+#####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeSource='018_OPS_Full';
+
+# Technical Path
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Technical\' ;
+zFile_Folder = zServer | zPath_Export;
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+# ==================================================================================
+# --  EXECUTE PROCESS
+# ==================================================================================
+nModDividend = 0 ;
+nModulus = 35 ;
+
+
+vDimSource = 'Organization_ER';
+
+k = 1;
+kMax = DIMSIZ( vDimSource );
+
+WHILE ( k <= kMax );
+
+	Elem_Orga = DIMNM ( vDimSource , k );
+	vLevel = ATTRS( vDimSource ,  Elem_Orga , 'Level' );
+	IF( vLevel @= 'ER'  );
+
+		sRemainder = NUMBERTOSTRING(MOD(nModDividend, nModulus));
+       	 	sLockObj = GetProcessName() | sRemainder ;
+		
+		RUNPROCESS('SCENARIO_ADM_EXP_Cube_018_to_Flat' , 'pOrganization', Elem_Orga , 'pLockObj' , sLockObj );
+		Nb_Lign = Nb_Lign + 1;
+		Nb_Load = Nb_Load+ 1;
+	ENDIF;
+	k = k + 1;
+	nModDividend = nModDividend + 1 ;
+END;
+
+
+# ==================================================================================
+# --  FILES CONTROL
+# ==================================================================================
+
+
+i = 1 ;
+iMax = DIMSIZ( vDimSource );
+WHILE( i <= iMax ) ;
+
+	Elem_Orga = DIMNM ( vDimSource , i );
+	vLevel = ATTRS( vDimSource ,  Elem_Orga , 'Level' );
+	IF( vLevel @= 'ER'  );
+
+		WHILE( FileExists( zFile_Folder | Elem_Orga | sCubeSource |'.txt' ) = 0 ) ;
+
+		END ;
+
+	ENDIF ;
+	i = i + 1 ;
+END ;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- FILES DELETE
+# ==================================================================================
+
+i = 1 ;
+iMax = DIMSIZ( vDimSource );
+WHILE( i <= iMax ) ;
+
+	Elem_Orga = DIMNM ( vDimSource , i );
+	vLevel = ATTRS( vDimSource ,  Elem_Orga , 'Level' );
+	IF( vLevel @= 'ER'  );
+
+		ASCIIDELETE( zFile_Folder | Elem_Orga |sCubeSource | '.txt');
+
+	ENDIF ;
+	i = i + 1 ;
+END ;
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+
+
+#endregion

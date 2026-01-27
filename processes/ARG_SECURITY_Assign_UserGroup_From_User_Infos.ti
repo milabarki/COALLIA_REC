@@ -1,0 +1,156 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : ARG_SECURITY_Assign_UserGroup_From_User_Infos
+# Description : Assign the group to the users by reading the user ARGOS_Organization attribute from the Cube User_Infos
+# Created by : MBO
+# Date : 16/07/2018
+####################################
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimClient = '}Clients';
+sDimGroup = '}Groups';
+sDimOrga = 'ARGOS_Organization';
+sCubeInfo = 'z03_User_Infos';
+sCubeSecu = '}ClientGroups';
+
+#Disable logging cube
+CUBESETLOGCHANGES( sCubeSecu , 0 );
+
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetNameTarget = '}Subset_Target_Cube_' | sCubeSecu | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+#-- Subset creation on dimension }Client
+sDim = sDimClient;
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+IF( pUser@<>'');
+SUBSETELEMENTINSERT( sDim , sSubsetName , pUser , 1 );
+
+ELSE;
+
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+
+		vElem = DIMNM( sDimClient , i );
+		IF( vElem @<> 'Admin' & vElem @<> 'DataAdmin' & vElem @<> 'SecurityAdmin' );
+			SUBSETELEMENTINSERT( sDim , sSubsetName , vElem , 1 );
+		ENDIF;
+		i = i + 1;
+
+	END;
+
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE
+# ==================================================================================
+DataSourceNameForServer = sDimClient ;
+DataSourceNameForClient = sDimClient ;
+DataSourceType = 'SUBSET';
+
+DataSourceDimensionSubset = sSubsetName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- ASSIGNATION CLIENT/GROUP
+# ==================================================================================
+
+sArgos =  CELLGETS( sCubeInfo , vUser , 'Argos' );
+
+# Access to Reporting
+
+IF ( sArgos @='Y');
+	CELLPUTS('A3_ARGOS' ,  sCubeSecu , vUser, 'A3_ARGOS');
+ELSE;
+	CELLPUTS('' ,  sCubeSecu , vUser, 'A3_ARGOS');
+	CELLPUTS('N', sCubeInfo , vUser , 'Argos' );
+ENDIF;
+
+
+cpt = 1;
+Nb_Orga_Secu = 10;
+WHILE(cpt <= Nb_Orga_Secu);
+
+	sAttr_Orga = 'Organization_Security_' | numbertostring(cpt);
+	sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+	sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+
+	IF( sClientOrga @<> '');
+
+		sGroupName = 'R_' | sClientOrga ;
+	
+		# -- Assign the group to the user
+		IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+			CELLPUTS(sGroupName ,  sCubeSecu , vUser, sGroupName);
+		ENDIF;
+
+	ENDIF;
+
+	
+	
+	cpt=cpt+1;
+	
+END;
+
+########################################################
+#
+# ACTIVIE SESSISION LIMITATION (2)
+#
+########################################################
+
+
+CELLPUTN( 25 , '}ClientProperties', vUser, 'MaximumPorts');
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#Enable  logging cube
+CUBESETLOGCHANGES( sCubeSecu , 1 );
+
+
+#endregion

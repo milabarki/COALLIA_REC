@@ -1,0 +1,14 @@
+{
+	"@type":"Process",
+	"Name":"z_ADM_Cube_Init_Reporting",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"z_ADM_Cube_Init_Reporting.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "1767970334000",
+	"VariablesUIData": []
+}

@@ -1,0 +1,68 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : Z_ADM_z02_Interf_Run_Follow_Log_Recording
+# Description : Save log
+# Created By : MBO
+# Date : 04/04/2017
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+zCube_Process ='z02_Inter_Run_Follow';
+zStartingDate = TIMST ( NOW , '\Y-\m-\d');
+zEndDate = TIMST ( NOW , '\Y-\m-\d  \h:\i:\s') ;
+zDimLoadingTime = 'z_Interf_Loading_Date';
+
+# ==================================================================================
+# -- Date Insert
+# ==================================================================================
+
+IF( DIMIX ( zDimLoadingTime, zStartingDate ) = 0 );
+              DIMENSIONELEMENTINSERT( zDimLoadingTime , '' , zStartingDate , 'N' );
+ENDIF;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- VALUE RECORDING
+# ==================================================================================
+
+CELLPUTS ( zEndDate , zCube_Process , pProcess ,zStartingDate, 'End_Date' );
+CELLPUTS ( pNb_Lign , zCube_Process , pProcess ,zStartingDate, 'Nb_Input_Records' );
+CELLPUTS ( pNb_Load , zCube_Process , pProcess ,zStartingDate, 'Nb_Load_Records' );
+CELLPUTN ( pExecTime , zCube_Process , pProcess ,zStartingDate, 'Duration' );
+
+
+IF( pNb_Lign @= pNb_Load);
+        CELLPUTS ('OK' , zCube_Process , pProcess ,zStartingDate, 'Status' );
+ELSE;
+        CELLPUTS ('KO' , zCube_Process , pProcess ,zStartingDate, 'Status' );
+ENDIF;
+
+
+#endregion

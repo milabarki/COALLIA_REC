@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Add_User",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_RP_Add_User.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pMailCheck",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pLoginCheck",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pGroupCheck",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pGroupSCheck",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703330009"
+}

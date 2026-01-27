@@ -1,0 +1,238 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_ADM_IMP_Cube_022_Data_Loading
+# Description : Load Pilot data for all customer per CAO except Scenario REV_N
+# Created by : MBO
+# Date : 14/04/2019
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeTarget = '022_Input_Pilot';
+sCube_Trade = '096_Trade';
+sCube_Trade_EXCP = '097_Trade_EXCP';
+sCubeParam = 'z01_Admin_Param';
+vDim_Loading = 'Loading_Location';
+vDim_Offloading = 'Offloading_Location';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+CUBESETLOGCHANGES( sCubeTarget , 0);
+
+Nb_Actual_Month = CELLGETS(sCubeParam , 'NB_ACTUAL_MONTH' , 'STR_VAR_S');
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+
+# -- Cube view name
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+# -- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'ACT_N-1' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'ACT_N' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FCT_N' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+sZone = CELLGETS( vCubeParam , 'ZONE', 'STR_VAR_S');
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+# ==================================================================================
+# -- DATA CONTROL
+# ==================================================================================
+Reject = 0;
+RejectNewBusiness = 0;
+
+vDim = 'Organization_Pilot';
+IF(DIMIX(vDim , ORG_OCC_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | ORG_OCC_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+vDim = 'Customer_Actual';
+
+IF(DIMIX(vDim , CLI_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | CLI_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+vDim = 'Carrier';
+
+IF(DIMIX(vDim , COM_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | COM_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+vDim = 'Loading_Location';
+
+IF(DIMIX(vDim , LOC_LOAD_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | LOC_LOAD_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+
+vDim = 'Offloading_Location';
+
+IF(DIMIX(vDim , LOC_OFFLOAD_CD) = 0);
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | LOC_OFFLOAD_CD | ' does not exist in the dimension ' | vDim; 
+	ASCIIOUTPUT( zFile , sErrorMsg);
+	Reject = 1;
+ENDIF;
+
+IF ( Reject <> 0 );
+	ITEMSKIP;
+ENDIF;
+
+
+# EXCLUDE PILOT NEW BUSINESS
+
+
+
+# ==================================================================================
+# --TRANSCODING
+# ==================================================================================
+
+vTrade = CELLGETS( sCube_Trade_EXCP , LOC_LOAD_CD , LOC_OFFLOAD_CD , 'STR_VAR_S' );
+
+IF( vTrade @= '');
+	vCountry_From = ELPAR( vDim_Loading ,  LOC_LOAD_CD , 1 );
+	vCountry_To = ELPAR( vDim_Offloading ,  LOC_OFFLOAD_CD , 1 );
+	vTrade = CELLGETS( sCube_Trade , vCountry_From , vCountry_To , 'STR_VAR_S' );
+ENDIF;
+
+
+vDim = 'Trade';
+
+IF(DIMIX(vDim , vTrade) = 0);
+	vTrade = 'XXXXX';
+	sErrorMsg = 'Error Line ' | numbertostring(Nb_Lign) | ' : Element ' | vTrade |'  -  '| vCountry_From |'  -  '| vCountry_To | ' does not exist in the dimension ' | vDim; 
+	#ASCIIOUTPUT( zFile , sErrorMsg);
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+
+# DATA LOADING
+
+Level = ELLEV('Customer_Actual', CLI_CD);
+CLI_CD=IF( Level<>0 , CLI_CD|'_X' , CLI_CD );
+
+CELLINCREMENTN( TEUS_NB , sCubeTarget , SCENARIO_CD , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'TEUS');
+CELLINCREMENTN( CHG_WEIGHT , sCubeTarget , SCENARIO_CD , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'CW');
+
+IF ( SCENARIO_CD @= 'ACT_N' & StringToNumber (MONTH_CD ) <=StringToNumber(Nb_Actual_Month));
+	CELLINCREMENTN( TEUS_NB , sCubeTarget , 'FCT_N' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'TEUS');
+	CELLINCREMENTN( CHG_WEIGHT , sCubeTarget , 'FCT_N' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'CW');
+	CELLINCREMENTN( TEUS_NB , sCubeTarget , 'BUDGET_N+1' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'TEUS');
+	CELLINCREMENTN( CHG_WEIGHT , sCubeTarget , 'BUDGET_N+1' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'CW');
+ENDIF;
+
+
+IF ( SCENARIO_CD @= 'FCT_N' );
+	# -- IMPLEMENT  BUDGET
+	CELLINCREMENTN( TEUS_NB , sCubeTarget , 'BUDGET_N+1' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'TEUS');
+	CELLINCREMENTN( CHG_WEIGHT , sCubeTarget , 'BUDGET_N+1' , MONTH_CD ,  COM_CD ,vTrade , LOC_LOAD_CD ,  LOC_OFFLOAD_CD , ORG_OCC_CD , CLI_CD , 'CW');
+ENDIF;
+
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+CUBESETLOGCHANGES( sCubeTarget , 1);
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

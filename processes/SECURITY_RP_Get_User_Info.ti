@@ -1,0 +1,168 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_RP_Get_User_Info
+# Description : Add user in table
+# Created by : MBO
+# Date : 20/12/2018
+####################################
+ 
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+
+sCubeTarget = 'z09_Temp_User_Management';
+sCubeSource ='z03_User_Infos';
+sDimClient = '}Clients';
+sDimParam ='z_Indicators_User_Param';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName();
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pClient , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW CLEAN
+# ==================================================================================
+
+ViewCreate( sCubeTarget , sViewNameTarget , 1);
+
+#-- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , vTM1USER , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+#-- Subset creation on dimension z_Nb_User
+sDim = 'z_Nb_User';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , '0' , 1 );
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+
+
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+vDim='z_Indicators_User_Param';
+vType = ATTRS('z_Indicators_User_Param' , z_Indicators_User_Infos , 'Type');
+
+IF (vType@='Boolean' );
+	IF( Value@='N');
+		Value = 'No';
+	ENDIF;
+	IF( Value@='Y');
+		Value = 'Yes';
+	ENDIF;
+ENDIF;
+
+IF ( vType@='Access' );
+	IF( Value@='N' );
+		Value = 'None';
+	ENDIF;
+	IF( Value@='C');
+		Value = 'Contributor';
+	ENDIF;
+	IF( Value@='R');
+		Value = 'Reader';
+	ENDIF;
+ENDIF;
+
+#17/03/2025 Suppression du libellé suite aux modifications de pyramide
+IF(vType@='Orga');
+	IF( DIMIX('Organization_Pilot_Full', Value) <> 0 ) ;	
+		#Value = ATTRS('Organization_Pilot_Full', Value , 'Label' );
+	ELSE;
+		#Value = ATTRS('ARGOS_Organization', Value , 'Label' );
+	ENDIF;
+ENDIF;
+
+IF(vType@='SalesOrga' );
+	Value = ATTRS('Sales_Organization', Value , 'Label' );
+ENDIF;
+
+
+CELLPUTS(Value , sCubeTarget ,  vTM1USER , '0', z_Indicators_User_Infos );
+CELLPUTS(pClient , sCubeTarget ,  vTM1USER , '0', 'Login_List' );
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion

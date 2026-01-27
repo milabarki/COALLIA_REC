@@ -1,0 +1,146 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_Group_Creation_From_Organization_STEP1Bis
+# Description : Creation of security group
+# Created by : MBO
+# Date : 02/08/2018
+####################################
+
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimGroup = '}Groups';
+sDimOrga = 'Organization_Pilot_Full';
+sCubeSecu_Orga = '}ElementSecurity_' | sDimOrga;
+nbOrga = DIMSIZ( sDimOrga );
+sAttr_NivOrga = 'Level';
+
+
+# ==================================================================================
+# -- SOURCE ADAPTATION TO TAKE SUBSET ALL AS A SOURCE (WORKS IN EVERY LANGUAGE)
+# ==================================================================================
+DataSourceNameForServer = sDimOrga;
+DataSourceNameForClient = sDimOrga;
+DataSourceType = 'SUBSET';
+DataSourceDimensionSubset = 'ALL';
+
+
+CubeClearData( sCubeSecu_Orga );
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- RETRIEVE LEVEL "ATTRIBUTE"
+# ==================================================================================
+sNiv = ELLEV( sDimOrga , vOrganization );
+
+# -- Create a contributor (C) level right for a CAO
+IF( sNiv = 0 );
+	sGroupName2 = 'R_' | vOrganization ;
+
+	# -- Create the group if it doesn't exist
+
+
+	IF( DIMIX( sDimGroup , sGroupName2 ) = 0 );
+		DIMENSIONELEMENTINSERT( sDimGroup , '' , sGroupName2 , 'S' );
+		AddGroup( sGroupName2 );
+	ENDIF;
+
+
+
+
+# -- Create a read-only (R) level right for Organization other than CAO
+ELSE;
+	sGroupName = 'R_' | vOrganization ;
+
+	# -- Create the group if it doesn't exist
+	IF( DIMIX( sDimGroup , sGroupName ) = 0 );
+		DIMENSIONELEMENTINSERT( sDimGroup , '' , sGroupName , 'S' );
+		AddGroup( sGroupName );
+	ENDIF;
+
+ENDIF;
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- Send a READ to the cube for the Organization and its descendants
+# ==================================================================================
+sNiv = ELLEV( sDimOrga , vOrganization );
+
+# -- Create a contributor (C) level right for a CAO
+IF( sNiv = 0 );
+
+	sGroupName2 = 'R_' | vOrganization ;
+
+	# -- Put a READ   for the organization and the given group
+	IF( DIMIX( sDimGroup , sGroupName2 ) <> 0 );
+		CELLPUTS( 'READ' , sCubeSecu_Orga , vOrganization , sGroupName2 );
+	ENDIF;
+
+
+# -- Create a read-only (R) level right for Organization other than CAO
+ELSE;
+	sGroupName = 'R_' | vOrganization ;
+	IF( DIMIX( sDimGroup , sGroupName ) <> 0 );
+		CELLPUTS( 'READ' , sCubeSecu_Orga , vOrganization , sGroupName );
+	ENDIF;
+
+	# -- Put a READ to the organization descendants
+	nCtr = 1;
+	WHILE( nCtr <= nbOrga );
+		sOrga = DIMNM( sDimOrga , nCtr );
+		IF( ELISANC( sDimOrga , vOrganization , sOrga ) = 1 );
+			CELLPUTS( 'READ' , sCubeSecu_Orga , sOrga , sGroupName );
+		ENDIF;
+		nCtr = nCtr + 1;
+	END;
+
+ENDIF;
+
+
+#-- Lock access to Application
+
+sGroupName1 = 'C_' | vOrganization ;
+sGroupName2 = 'R_' | vOrganization ;
+
+i= 1;
+iMax = DIMSIZ('}ApplicationEntries');
+WHILE ( i <= iMax );
+	vElt = DIMNM ( '}ApplicationEntries' , i );
+	IF( DIMIX( sDimGroup , sGroupName1 ) <> 0 );
+		CELLPUTS( 'NONE' , '}ApplicationSecurity' , vElt , sGroupName1 );
+	ENDIF;
+	IF( DIMIX( sDimGroup , sGroupName2 ) <> 0 );
+		CELLPUTS( 'NONE' , '}ApplicationSecurity' , vElt , sGroupName2 );
+	ENDIF;
+	i = i+1;
+END;
+
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

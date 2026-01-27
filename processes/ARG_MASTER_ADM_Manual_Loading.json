@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"ARG_MASTER_ADM_Manual_Loading",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_MASTER_ADM_Manual_Loading.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797032800028"
+}

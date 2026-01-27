@@ -1,0 +1,25 @@
+{
+	"@type":"Process",
+	"Name":"ARG_SECURITY_Group_Creation_From_ARGOS_Organization",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_SECURITY_Group_Creation_From_ARGOS_Organization.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"Organization",
+		"dataSourceNameForClient":"Organization",
+		"subset":"All"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vOrganization",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703290007"
+}

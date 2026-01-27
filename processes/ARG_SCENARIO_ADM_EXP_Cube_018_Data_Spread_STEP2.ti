@@ -1,0 +1,130 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : ARG_SCENARIO_ADM_EXP_Cube_018_Data_Spread_STEP2
+# Description : 012 monthly weigt calculation for 018
+# Created by : MBO
+# Date : 06/05/2021
+####################################
+
+
+
+#==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '012_OPS_Monthly_Input' ;
+sCubeTarget = '018_OPS_Full';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |  GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |  GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |  GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Customer_Top
+sDim = 'Customer_Top';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'TOTAL_OTHERS' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = ';';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+## Check if Customer is only top GM_WT_ADJ
+
+vSubsetCustomerTarget ='}Sub_Orga_OTH_'|Organization;
+
+vCustomerTotalValue = CELLGETN ( sCubeSource , Currency, Scenario,'TOTAL_YEAR' , Activity, Geo_From , Geo_To , Organization , Customer_Top , Indicators_Op );
+vCustomerWeight = Value / vCustomerTotalValue ;
+
+i = 1;
+iMax = SUBSETGETSIZE( 'Customer_Actual_Init', vSubsetCustomerTarget );
+
+WHILE( i <= iMax );
+
+	vElt = SUBSETGETELEMENTNAME('Customer_Actual_Init', vSubsetCustomerTarget,i);
+	vRef = CELLGETN ( sCubeTarget , Currency, Scenario,'TOTAL_VALUE' , Activity, Geo_From , Geo_To , Organization , vElt , 'GM_WT_ADJ' );
+
+	IF ( vRef <> 0 );
+		CELLPUTN ( vCustomerWeight , sCubeTarget , Currency, Scenario,Months , Activity, Geo_From , Geo_To , Organization , vElt , 'GM_WT_ADJ' );
+	ENDIF;
+
+	i= i + 1;
+END;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

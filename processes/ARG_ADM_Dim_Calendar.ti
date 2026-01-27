@@ -1,0 +1,138 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS_FLASH
+# Process : ARG_ADM_Dim_Calendar
+# Description : Create Calendar dimension
+# Created by : MBO
+# Date : 26/11/2021
+####################################
+
+
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+sDim = 'ARGOS_Calendar';
+
+
+#--Create dimension
+IF(DIMIX('}Dimensions',sDim)=0);
+	DIMENSIONCREATE(sDim);
+	ATTRINSERT(sDim,'','FR Desc','A');
+	ATTRINSERT(sDim,'','DYN_Version','S');
+
+ENDIF;
+
+#--Order element
+DIMENSIONSORTORDER(sDim,'ByName','Ascending','ByHierarchy','Ascending');
+
+# Insert Year
+DIMENSIONELEMENTINSERT(sDim,'', NEW_YEAR,'c');
+
+#Insert Month;
+i =1;
+WHILE(i<13);
+	MOIS=IF(i<10,'0' | STR(i,1,0),STR(i,2,0));
+
+	DIMENSIONELEMENTINSERT(sDim,'',NEW_YEAR | '-' | MOIS,'c');
+	DIMENSIONELEMENTCOMPONENTADD(sDim, NEW_YEAR,NEW_YEAR | '-' | MOIS,1);
+
+	i=i+1;
+END;
+
+#-- ************************************************
+
+FIN_NEW_YEAR=DAYNO(SUBST(NEW_YEAR,3,2) | '-12-31');
+DEBUT_NEW_YEAR=DAYNO(SUBST(NEW_YEAR,3,2) | '-01-01');
+
+JOUR=DEBUT_NEW_YEAR;
+
+WHILE(JOUR<=FIN_NEW_YEAR );
+
+	AN=STR(TIMVL(JOUR,'Y'),4,0);
+	MOIS=TIMST(JOUR,'\m');
+	J=TIMST(JOUR,'\d');
+	DATE_STR=AN | '-' | MOIS  | '-' | J;
+
+	DIMENSIONELEMENTINSERT(sDim,'',DATE_STR,'n');
+	DIMENSIONELEMENTCOMPONENTADD(sDim,NEW_YEAR | '-' | MOIS,DATE_STR,1);
+
+	JOUR=JOUR+1;
+END;
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# Attribute
+# ==================================================================================
+
+JOUR=DEBUT_NEW_YEAR;
+
+
+WHILE(JOUR<=FIN_NEW_YEAR );
+
+	AN=STR(TIMVL(JOUR,'Y'),4,0);
+	MOIS=TIMST(JOUR,'\m');
+	J=TIMST(JOUR,'\d');
+	DATE_STR=AN | '-' | MOIS  | '-' | J;
+	LABEL_FR = J | '/' | MOIS  | '/' | AN;
+
+	DATE_DYN=SUBST(AN,3,2) | '-' | MOIS  | '-' | J;
+	ATTRPUTS(LABEL_FR,sDim,DATE_STR,'FR Desc');
+	ATTRPUTS(DATE_DYN ,sDim, DATE_STR,'DYN_Version');
+
+	JOUR=JOUR+1;
+
+END;
+
+
+# ==================================================================================
+# Subset Alimentation
+# ==================================================================================
+
+
+#Subset by Month;
+i =1;
+WHILE(i<13);
+	MOIS=IF(i<10,'0' | STR(i,1,0),STR(i,2,0));
+	vMonth = NEW_YEAR |'-'| MOIS;
+	sSubsetName = '}RP_List_'|NEW_YEAR |'_'| MOIS|'_'|sDim;
+
+	sMDX ='{TM1FILTERBYLEVEL( {TM1DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|sDim|'] )}, "'|vMonth|'")}, ALL, RECURSIVE )}, 0)}';
+
+	# -- Create the MDX
+	SUBSETDESTROY( sDim ,sSubsetName );
+	SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+	# -- Convert the MDX-based subset into a static subset
+	SubsetElementInsert( sDim , sSubsetName , Dfrst( sDim ), 1 );
+	SubsetElementDelete( sDim , sSubsetName , 1 );
+
+	SubsetAliasSet( sDim , sSubsetName , 'FR Desc' );
+
+	i=i+1;
+END;
+
+
+
+
+#endregion

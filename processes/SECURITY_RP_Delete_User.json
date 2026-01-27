@@ -1,0 +1,46 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Delete_User",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_RP_Delete_User.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z09_Temp_User_Management",
+		"dataSourceNameForClient":"z09_Temp_User_Management",
+		"view":"Par défaut"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"Client_Name",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Nb_User",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Indicators_User_Param",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"Value",
+			"Type":"String",
+			"Position":4,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300012"
+}

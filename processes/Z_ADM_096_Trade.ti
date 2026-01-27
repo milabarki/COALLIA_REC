@@ -1,0 +1,119 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : Z_ADM_096_TRADE
+# Description : Load cub 096_Trade
+# Created by : MBO
+# Date : 06/04/2017
+####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeCible = '096_Trade';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewNameCible = 'Vue_Cible_Cube_' | sCubeCible | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameCible = 'Subset_Cible_Cube_' | sCubeCible | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+CUBESETLOGCHANGES( sCubeCible , 0);
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+
+
+# -- Cube view name
+
+ViewCreate( sCubeCible , sViewNameCible,1);
+
+ViewZeroOut( sCubeCible , sViewNameCible );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#--Data Input
+IF(DIMIX('Country_From', TRD_COL_CD)= 0);
+	TRD_COL_CD='CTRY_XX';
+ENDIF;
+
+IF(DIMIX('Country_From', TRD_COD_CD)= 0);
+	TRD_COD_CD='CTRY_XX';
+ENDIF;
+
+CELLPUTS( TRD_CD , sCubeCible , TRD_COL_CD , TRD_COD_CD , 'STR_VAR_S' ); 
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+CUBESETLOGCHANGES( sCubeCible , 1);
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+#endregion

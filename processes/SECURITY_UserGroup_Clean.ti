@@ -1,0 +1,154 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_UserGroup_Clean
+# Description : Clean the user Organization security
+# Created by : MBO
+# Date : 28/02/2019
+####################################
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimClient = '}Clients';
+sDimGroup = '}Groups';
+sDimOrga = 'Organization_Pilot';
+sCubeInfo = 'z03_User_Infos';
+sCubeSource = '}ClientGroups';
+sCubeSettings = '}ClientSettings';
+
+
+#Disable logging cube
+CUBESETLOGCHANGES( sCubeSource , 0 );
+
+# ==================================================================================
+# -- VARIABLES INIT
+# ==================================================================================
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW RESET
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName,1 );
+
+#-- Subset creation on dimension }Client
+sDim = sDimClient;
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pUser , 1 );
+
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+sDim = sDimGroup;
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1);
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElem = DIMNM( sDim , i );
+	IF( SUBST(vElem , 1 , 1 )@= 'C' % SUBST(vElem , 1,1 ) @='R' );
+		SubsetElementInsert( sDim , sSubsetName , vElem , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- CLEAN GROUP
+# ==================================================================================
+
+cpt = 1;
+Nb_Orga_Secu = 10;
+WHILE(cpt <= Nb_Orga_Secu);
+
+	sAttr_Orga = 'Organization_Security_' | numbertostring(cpt);
+	sClientOrga = CELLGETS( sCubeInfo , vUser , sAttr_Orga );
+	sNiv = ELLEV( sDimOrga , sClientOrga );
+	
+	IF( sClientOrga @<> '' );
+
+		sPos = SCAN('R_',vGroup); 
+		IF ( sPos <> 0 );
+			sValEndPart = SUBST( vGroup , 3 , LONG(vGroup)-2 );
+		ENDIF;
+
+		sPos = SCAN('C_',vGroup); 
+		IF ( sPos <> 0 );
+			sValEndPart = SUBST( vGroup , 3 , LONG(vGroup)-2 );
+		ENDIF;
+
+
+		IF( sValEndPart@=sClientOrga % ELISANC(sDimOrga, sDimOrga , sValEndPart) <> 0 );
+			ITEMSKIP;
+		ENDIF;
+
+	ENDIF;
+	
+	cpt=cpt+1;
+	
+END;
+
+
+CELLPUTS( '' , sCubeSource , vUser , vGroup);
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#Enable  logging cube
+CUBESETLOGCHANGES( sCubeSource , 1 );
+
+
+#endregion

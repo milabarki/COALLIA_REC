@@ -1,0 +1,79 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : $_Conversion_Emails_from_Bollore_to_Ceva
+# Description : Conversion Emails from Bollore to Ceva
+# Created by : MBA
+# Date : 13/12/2024
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCube = 'z03_User_Infos' ;
+
+sViewName = 'View_Source_Cube_' | sCube | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCube | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCube , sViewName , 1);
+
+# ==================================================================================
+# --Dimension ::: z_Indicators_User_Infos
+# ==================================================================================
+#-- Subset creation on dimension z_Indicators_User_Infos
+sDim = 'z_Indicators_User_Infos';
+
+SubsetCreate( sDim , sSubsetName, 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Email' , 1 );
+
+ViewSubsetAssign( sCube , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCube;
+DataSourceCubeView = sViewName;
+
+
+#Disable logging cube
+##CUBESETLOGCHANGES( sCube , 0 );
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# -- Get the user name
+vFlag= scan( '@', vEmail );
+vUserName = Delet(vEmail, vFlag,16 );
+
+# -- Get the new Ceva email
+vCevaEmail = vUserName | '@cevalogistics.com';
+
+# -- Load new Email 
+CellPutS( vCevaEmail, sCube, vClient, 'Email'); 
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

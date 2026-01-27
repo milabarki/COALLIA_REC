@@ -1,0 +1,39 @@
+{
+	"@type":"Process",
+	"Name":"$_Conversion_Emails_from_Bollore_to_Ceva",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"$_Conversion_Emails_from_Bollore_to_Ceva.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z03_User_Infos",
+		"dataSourceNameForClient":"z03_User_Infos",
+		"view":"Par défaut"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vClient",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Indicators_User_Infos",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"vEmail",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703260004"
+}

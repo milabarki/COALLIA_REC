@@ -1,0 +1,124 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Customer_Actual_Other_Update_STEP4
+# Description : Add customer in hierrachy "other"
+# Created by : MBO
+# Date : 23/04/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Customer_Actual';
+sCube = 'z05_Other_Conso';
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+#DATA CHECK ( For New Business )
+
+IF (pInit = 0);
+	#Check if Customer has been taken out of  "Other" 
+	IF ( DIMIX ( 'Customer_Top' , CLI_CD) <>0);
+		vValue = CELLGETN( sCube ,  CLI_CD,ORG_OCC_CD ,'GM');
+	ENDIF;
+
+	IF(  vValue <> 0 );
+		ITEMSKIP;
+	ENDIF;
+ENDIF;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+vOrga = 'OTH_'|ORG_OCC_CD;
+
+IF( DIMIX( 'Organization', ORG_OCC_CD)<>0);
+	DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+	DIMENSIONELEMENTCOMPONENTADD(vDim, vOrga,CLI_CD,1.000000);
+#ELSE;
+	#DIMENSIONELEMENTINSERT(vDim,'',CLI_HQ_CD,'n');
+	#DIMENSIONELEMENTINSERT(vDim,'',CLI_CD,'n');
+	#DIMENSIONELEMENTCOMPONENTADD(vDim,vOrga ,CLI_HQ_CD,1.000000);
+	#DIMENSIONELEMENTCOMPONENTADD(vDim,CLI_HQ_CD,CLI_CD,1.000000);
+ENDIF;
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+#endregion

@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_Tools_Save",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"Z_ADM_Tools_Save.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"Name",
+			"Prompt":"Name (Optional) :",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[],
+	"UID": "17679703340008"
+}

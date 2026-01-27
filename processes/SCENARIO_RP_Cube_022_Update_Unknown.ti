@@ -1,0 +1,201 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SCENARIO_RP_Cube_022_Update_Unknown
+# Description : Transfer Unknown data from 070 to 022
+# Created by : MBO
+# Date : 03/05/2018
+####################################
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '070_Unknown';
+sCubeTarget = '022_Input_Pilot';
+sCube_Trade = '096_Trade';
+sCube_Trade_EXCP = '097_Trade_EXCP';
+
+vDim_Loading = 'Loading_Location';
+vDim_Offloading = 'Offloading_Location';
+
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+zScenario = pScenario;
+
+## Ownership
+IF( pStatus @<> 'N' );
+	PROCESSQUIT;
+ENDIF;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' |sCubeSource| '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+vDim_Month = 'Months';
+iFlag = 0;
+### -- CUSTOMER
+vTargetCustomer = CELLGETS( sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Customer_Target' );
+IF ( vTargetCustomer@<>'');
+	vCustomer= DimensionElementPrincipalName('Customer_Actual', vTargetCustomer);
+	iFlag = 1;
+ELSE;
+	vCustomer = Customer_Actual;
+ENDIF;
+
+### -- CARRIER
+vTargetCarrier = CELLGETS( sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Carrier_'|pType|'_Target' );
+IF ( vTargetCarrier@<>'');
+	vCarrier = DimensionElementPrincipalName('Carrier', vTargetCarrier);
+	iFlag = 1;
+ELSE;
+	vCarrier = Carrier;
+ENDIF;
+
+### -- POL
+vTargetPOL = CELLGETS( sCubeSource ,  zScenario,Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Loading_Location_Target' );
+IF ( vTargetPOL@<>'');
+	vPOL = DimensionElementPrincipalName( 'Loading_Location', vTargetPOL);
+	iFlag = 1;
+ELSE;
+	vPOL = Loading_Location;
+ENDIF;
+
+### -- POD
+vTargetPOD = CELLGETS( sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Offloading_Location_Target' );
+IF ( vTargetPOD@<>'');
+	vPOD = DimensionElementPrincipalName( 'Offloading_Location', vTargetPOD);
+	iFlag = 1;
+ELSE;
+	vPOD = Offloading_Location;
+ENDIF;
+
+### -- ROW CONTROL ( Map data only for edit row )
+IF ( iFlag = 0 );
+	ITEMSKIP;
+ENDIF;
+
+### -- TRADE
+vTrade = CELLGETS( sCube_Trade_EXCP , vPOL , vPOD , 'STR_VAR_S' );
+
+IF( vTrade @= '');
+	vCountry_From = ELPAR( vDim_Loading ,  vPOL , 1 );
+	vCountry_To = ELPAR( vDim_Offloading ,  vPOD , 1 );
+	vTrade = CELLGETS( sCube_Trade , vCountry_From , vCountry_To , 'STR_VAR_S' );
+ENDIF;
+
+
+### --  FLAG NEW BUSINESS/ CUSTOMER
+
+# vExistNC = CELLGETN ( sCubeTarget , zScenario , 'TOTAL_CARRIER' , 'TOTAL_TRADE' , 'TOTAL_LOC' , 'TOTAL_OFF_LOC' , Organization_Pilot , vCustomer , zIndicator );
+vExistNC = CELLGETN ( sCubeTarget , zScenario, 'TOTAL_YEAR' , 'TOTAL_CARRIER' , 'TOTAL_TRADE' , 'TOTAL_LOC' , 'TOTAL_OFF_LOC' , Organization_Pilot , vCustomer ,  zIndicator );
+vExistNB = CELLGETN ( sCubeTarget , zScenario, 'TOTAL_YEAR'  ,'TOTAL_CARRIER' , 'TOTAL_TRADE' , 'TOTAL_LOC' , 'TOTAL_OFF_LOC' , Organization_Pilot , vCustomer , zIndicator );
+
+IF( vExistNC = 0 );
+	CELLPUTN ( 1 , sCubeTarget , zScenario, 'TOTAL_VALUE' , vCarrier , vTrade , vPOL , vPOD , Organization_Pilot , vCustomer , 'New_Customer_'|pType );
+ELSE;
+	IF( vExistNB <> 0 );
+		vExistNB2 = CELLGETN ( sCubeTarget , zScenario, 'TOTAL_YEAR' , vCarrier , vTrade , vPOL , vPOD , Organization_Pilot , vCustomer , zIndicator ); 
+		IF( vExistNB2 = 0 );
+			CELLPUTN ( 1 , sCubeTarget , zScenario, 'TOTAL_VALUE' , vCarrier , vTrade , vPOL , vPOD , Organization_Pilot , vCustomer , 'New_Business_'|pType ); 
+		ENDIF;
+	ENDIF;
+ENDIF;
+
+CELLPUTN( 0 , sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Flag' );
+CELLPUTS( '',sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Customer_Target' );
+CELLPUTS( '',sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Carrier_'|pType|'_Target' );
+CELLPUTS( '',sCubeSource ,  zScenario,Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Loading_Location_Target' );
+CELLPUTS( '', sCubeSource , zScenario, Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator , 'Offloading_Location_Target' );
+
+##-- Check each months
+
+i= 1;
+WHILE ( i <= 12 );
+
+	IF( LONG( numbertostring ( i ) ) =1 );
+		zMonth_Label = '0' | numbertostring ( i );
+	ELSEIF( LONG( numbertostring ( i ) ) =2 );
+		zMonth_Label = numbertostring ( i );
+	ENDIF;
+
+	zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+
+	##-- Copy Value from origin
+	vValue = CELLGETN( sCubeTarget , zScenario, zMonth , Carrier , Trade ,Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator  );
+	
+	##-- Paste value on new Customer /POL/POD/Carrier/Trade
+	CELLINCREMENTN (vValue , sCubeTarget , zScenario, zMonth , vCarrier , vTrade , vPOL , vPOD , Organization_Pilot , vCustomer , zIndicator );
+	CELLPUTN (0 , sCubeTarget , zScenario, zMonth , Carrier , Trade , Loading_Location , Offloading_Location , Organization_Pilot , Customer_Actual , zIndicator );
+	i = i + 1;
+END;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

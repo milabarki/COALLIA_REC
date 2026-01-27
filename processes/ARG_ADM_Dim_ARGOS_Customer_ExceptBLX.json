@@ -1,0 +1,25 @@
+{
+	"@type":"Process",
+	"Name":"ARG_ADM_Dim_ARGOS_Customer_ExceptBLX",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"ARG_ADM_Dim_ARGOS_Customer_ExceptBLX.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"ARGOS_Customer",
+		"dataSourceNameForClient":"ARGOS_Customer",
+		"subset":"}RP_List_ARGOS_Customer"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vCustomer",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797032800016"
+}

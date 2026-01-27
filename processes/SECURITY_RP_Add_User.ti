@@ -1,0 +1,162 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_RP_Add_User
+# Description : Add user in table
+# Created by : MBO
+# Date : 17/12/2018
+####################################
+ 
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+
+sCube = 'z09_Temp_User_Management';
+sDimClient = '}Clients';
+sDimParam ='z_Indicators_User_Param';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+
+
+# ==================================================================================
+# -- CONSISTENCY CHECK
+# ==================================================================================
+
+IF(pMailCheck=0 % pLoginCheck=0 % pGroupCheck=0 % pGroupSCheck=0);
+	PROCESSQUIT;
+ENDIF;
+
+
+# ==================================================================================
+# -- DATA COPY
+# ==================================================================================
+
+
+
+### Browse rows ###
+i= 1;
+iMax = 50;
+WHILE( i <= iMax );
+	vNb = NumberToString(i);
+	vCheck = CELLGETS( sCube , vTM1USER , vNb, 'Login' );
+	vNewLogin = CELLGETS( sCube , vTM1USER , 'TEMP', 'Login' );
+
+	### Control if login already exist ###
+	IF(vNewLogin@=vCheck);
+		PROCESSQUIT;
+	ENDIF;
+
+	### Control the number of row ###
+	IF(vCheck@<>'');
+		i = i +1;
+	ELSE;
+		i=51;
+	ENDIF;
+END;
+
+
+### Copy indicators ###
+i = 1;
+iMax =DIMSIZ(sDimParam);
+WHILE ( i <= iMax );
+	vInd = DIMNM( sDimParam,i);
+
+	vType = ATTRS(sDimParam ,vInd , 'Type');
+
+	IF ( vType@='Access' );
+		vValue=CELLGETS( sCube , vTM1USER , 'TEMP', vInd);
+
+		IF( vValue@='' ); 
+			CELLPUTS('None' , sCube , vTM1USER , vNb, vInd );
+		ELSE;
+			CELLPUTS(vValue , sCube , vTM1USER , vNb, vInd );
+		ENDIF;
+
+	ELSE;
+		vValue=CELLGETS( sCube , vTM1USER , 'TEMP', vInd);
+		CELLPUTS(vValue , sCube , vTM1USER , vNb, vInd );
+
+	ENDIF;
+
+
+	i = i+1;
+END;
+
+
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+sViewName = 'View_Cube_' | sCube | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Cube_' | sCube | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW RESET
+# ==================================================================================
+
+
+# -- Cube view name
+ViewCreate( sCube , sViewName,1);
+
+# -- Subset creation on dimension z_Nb_User
+sDim = 'z_Nb_User';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'TEMP' , 1 );
+ViewSubsetAssign( sCube , sViewName , sDim , sSubsetName );
+
+
+# -- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , vTM1USER , 1 );
+ViewSubsetAssign( sCube , sViewName , sDim , sSubsetName );
+
+ViewZeroOut( sCube , sViewName);
+
+
+# ==================================================================================
+# -- INPUT INIT VALUE
+# ==================================================================================
+
+CELLPUTS('No', sCube ,  vTM1USER ,'TEMP' , 'User_Admin');
+CELLPUTS('No',sCube ,  vTM1USER ,'TEMP' , 'Argos');
+CELLPUTS('No',sCube ,  vTM1USER ,'TEMP' , 'HFO');
+CELLPUTS('None',sCube ,  vTM1USER ,'TEMP' , 'Operational');
+CELLPUTS('No',sCube ,  vTM1USER ,'TEMP' , 'BO_Admin');
+CELLPUTS('None',sCube ,  vTM1USER ,'TEMP' , 'Pilot_Air');
+CELLPUTS('None',sCube ,  vTM1USER ,'TEMP' , 'Pilot_Sea');
+CELLPUTS('No',sCube ,  vTM1USER ,'TEMP' , 'MO_Admin');
+#endregion

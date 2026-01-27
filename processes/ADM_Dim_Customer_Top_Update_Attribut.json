@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"ADM_Dim_Customer_Top_Update_Attribut",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"ADM_Dim_Customer_Top_Update_Attribut.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797032700019"
+}

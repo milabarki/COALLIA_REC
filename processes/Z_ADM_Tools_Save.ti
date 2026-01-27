@@ -1,0 +1,140 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : Z_ADM_Tools_Save
+# Description : Application BackUp
+# Author : MBO
+# Date : 25/07/2017
+####################################
+
+
+# ==================================================================================
+# --  DATA SAVE
+# ==================================================================================
+
+#-- Data save on Disk
+SaveDataAll;
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+
+sParamCube = 'z01_Admin_Param';
+
+#-- Check if Name paramter is empty
+IF( Name@<>'' & Name@<>' ');
+   Name='_' | Name;
+ELSE;
+   Name='';
+ENDIF;
+
+#-- Command path
+SERVER_NAME = CELLGETS(sParamCube,'SERVER_NAME','STR_VAR_S');
+TMP_FOLDER = CELLGETS(sParamCube,'REP_TEMP','STR_VAR_S') ;
+TMP_DIR =SERVER_NAME | TMP_FOLDER;
+
+IF( FileExists(TMP_DIR | '\save.cmd')=1);
+   ProcessQuit;
+ENDIF;
+
+#-- Backup path
+DIR=SERVER_NAME | CELLGETS(sParamCube,'REP_BACKUP','STR_VAR_S');
+
+#-- Data Path
+DATA_DIR='"' | SERVER_NAME | '\D$\TM1Data\RUBIKS\Data"';
+
+#-- Change delimiter in batch
+DatasourceASCIIQuoteCharacter='';
+
+
+# ==================================================================================
+# --  COMMAND
+# ==================================================================================
+
+
+#-- Excluded file   ( config file, etc...)
+ASCIIOUTPUT(TMP_DIR | 'Exclude.txt','.blb');
+#ASCIIOUTPUT(TMP_DIR | 'Exclude.txt','TM1ProcessError');
+#ASCIIOUTPUT(TMP_DIR | 'Exclude.txt','}Applications');
+
+#-- Period range
+
+JOUR = MOD(DAYNO(TODAY) + 21915 , 7 );
+
+IF( JOUR = 1 );
+   JOUR_RET = 'MONDAY';
+ELSEIF( JOUR = 2 );
+   JOUR_RET = 'TUESDAY';
+ELSEIF( JOUR = 3 );
+   JOUR_RET = 'WEDNESDAY';
+ELSEIF( JOUR = 4 );
+   JOUR_RET = 'THURSDAY';
+ELSEIF( JOUR = 5 );
+   JOUR_RET = 'FRIDAY';
+ELSEIF( JOUR = 6 );
+   JOUR_RET = 'SATURDAY';
+ELSE;
+   JOUR_RET = 'SUNDAY';
+ENDIF;
+
+H=NUMBR(TIMST(NOW,'\h'));
+IF(H<14);
+   T='AM';
+ELSE;
+   T='PM';
+ENDIF;
+IF( Name @= '' );
+    Name = 'BKP';
+ELSE;
+    Name = Name;
+ENDIF;
+JOUR_RET = JOUR_RET | '_' |T| '_' | Name;
+
+
+#-- Command line creation
+#-- Save Directory
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Set vSave=' | DIR);
+#-- Data directory
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Set vData=' | DATA_DIR);
+#-- Exclusion file
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Set vExclude=' | TMP_DIR | 'Exclude.txt');
+
+#-- Delete/ Creation of save path
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Rd /S/Q %vSave%\' | JOUR_RET);
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Md %vSave%\' | JOUR_RET);
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','Md %vSave%\' | JOUR_RET | '\RUBIKS');
+
+#-- Data copy
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','xcopy /Exclude:%vExclude% /E/C/q  %vData% %vSave%\' | JOUR_RET | '\RUBIKS\ ');
+
+#-- Self delete
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','del ' | TMP_DIR | 'Exclude.txt');
+ASCIIOUTPUT(TMP_DIR | '\save.cmd','del ' | TMP_DIR | 'save.cmd');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# --  COMMAND EXECUTION
+# ==================================================================================
+ExecuteCommand('cmd /c " Call ' | TMP_DIR | '\save.cmd  && exit"',1);
+
+#endregion

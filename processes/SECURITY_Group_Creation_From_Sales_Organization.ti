@@ -1,0 +1,113 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_Group_Creation_From_Sales_Organization
+# Description : Init Element Security Sales Organization
+# Created by : MBO
+# Date : 03/06/2021
+####################################
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sCubeSource = 'z03_User_Infos';
+sCubeSecu = '}ElementSecurity_Sales_Organization';
+sDimOrga = 'Sales_Organization';
+sDimGroup = '}Groups';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+sViewName = 'Vue_Cube_' | sCubeSource | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension }Groups
+sDim = 'z_Indicators_User_Infos';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_1' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_2' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_3' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_4' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'Sales_Security_5' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource , sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource , sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource , sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- GROUP CREATION
+# ==================================================================================
+
+#-- If the organization exists
+IF( DIMIX( sDimOrga , vOrganization ) <> 0 );
+	sGroupName = 'R_' | vOrganization;
+
+	#-- Create the group if it doesn't exist
+	IF( DIMIX( sDimGroup , sGroupName ) = 0 );
+		DIMENSIONELEMENTINSERT( sDimGroup , '' , sGroupName , 'S' );
+	ENDIF;
+ENDIF;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- Verify sales orga security is set
+# ==================================================================================
+
+IF( DIMIX( sDimOrga , vOrganization ) <> 0 ) ;
+
+	sGroupName = 'R_' | vOrganization;
+	CELLPUTS( 'READ' , sCubeSecu , vOrganization , sGroupName );
+ENDIF;
+
+#-- if the organization is at conso level, set READ its children in security cube
+IF( ELLEV( sDimOrga , vOrganization ) <> 0 );
+	i = 1;
+	iMax = DIMSIZ( sDimOrga );
+	WHILE( i <= iMax );
+		sOrga = DIMNM( sDimOrga , i );
+		IF( ELISANC( sDimOrga , vOrganization , sOrga ) = 1 );
+			CELLPUTS( 'READ' , sCubeSecu , sOrga , sGroupName );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

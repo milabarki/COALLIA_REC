@@ -1,0 +1,41 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_097_Trade_EXCP",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_097_Trade_EXCP.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"ARGOS",
+		"dataSourceNameForClient":"ARGOS",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT*\r\nFROM [BUD].[PAR_TRADE_LOCATION_EXCP]"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"TRD_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"TRD_POL_CD",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"TRD_POD_CD",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300030"
+}

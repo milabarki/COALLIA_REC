@@ -1,0 +1,78 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : Z_ADM_AudtiLogs_Cleaning
+# Description : Auditlogs cleaning
+# Author : MBO
+# Date : 27/10/2021
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+
+sParamCube = 'z01_Admin_Param';
+
+#-- Command path
+INSTANCE_NAME = CELLGETS(sParamCube,'INSTANCE_NAME','STR_VAR_S');
+SERVER_NAME = CELLGETS(sParamCube,'SERVER_NAME','STR_VAR_S');
+TMP_FOLDER = CELLGETS(sParamCube,'REP_TEMP','STR_VAR_S') ;
+TMP_DIR =SERVER_NAME | TMP_FOLDER;
+
+IF( FileExists(TMP_DIR | '\Delete.cmd')=1);
+   ProcessQuit;
+ENDIF;
+
+#-- Log Path
+LOG_DIR='"D:\TM1Data\'|INSTANCE_NAME|'\Logs"';
+
+#-- Change delimiter in batch
+DatasourceASCIIQuoteCharacter='';
+
+
+# ==================================================================================
+# --  COMMAND
+# ==================================================================================
+
+
+
+
+
+#-- Command line creation
+#-- Logs directory
+ASCIIOUTPUT(TMP_DIR | '\Delete.cmd','Set vLogs=' | LOG_DIR);
+
+#-- Data copy
+ASCIIOUTPUT(TMP_DIR | '\Delete.cmd','forfiles -p %vLogs% -s -m tm1auditstore*.log  -c "cmd /c del @path" -d -8');
+ASCIIOUTPUT(TMP_DIR | '\Delete.cmd','forfiles -p %vLogs% -s -m TM1ProcessError*.log  -c "cmd /c del @path" -d -8');
+ASCIIOUTPUT(TMP_DIR | '\Delete.cmd','forfiles -p %vLogs% -s -m tm1s*.log*  -c "cmd /c del @path" -d -8');
+
+ASCIIOUTPUT(TMP_DIR | '\Delete.cmd','del ' | TMP_DIR | 'Delete.cmd');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# --  COMMAND EXECUTION
+# ==================================================================================
+ExecuteCommand('cmd /c " Call ' | TMP_DIR | '\Delete.cmd  && exit"',1);
+
+#endregion

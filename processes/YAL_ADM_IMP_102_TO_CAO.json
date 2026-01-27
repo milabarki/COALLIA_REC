@@ -1,0 +1,34 @@
+{
+	"@type":"Process",
+	"Name":"YAL_ADM_IMP_102_TO_CAO",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"YAL_ADM_IMP_102_TO_CAO.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV2",
+		"dataSourceNameForClient":"RUBIKS_DEV2",
+		"userName":"IUSR_RUBIKS",
+		"password":"aYxqP7AUbUEAmrpzyBn5",
+		"query":"SELECT\r\nORG_OCC_CD,\r\nPCT_TO_CONSO_DEV\r\nFROM [BUD].[FACT_RATIO_CONSO]\r\nORDER BY ORG_OCC_CD,PCT_TO_CONSO_DEV"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"ORG_OCC_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"PCT_TO_CONSO_DEV",
+			"Type":"Numeric",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300024"
+}

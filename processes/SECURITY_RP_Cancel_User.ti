@@ -1,0 +1,98 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : SECURITY_RP_Cancel_User
+# Description : Add user in table
+# Created by : MBO
+# Date : 21/12/2018
+####################################
+ 
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+
+sCubeSource = 'z09_Temp_User_Management';
+sCubeTarget ='z03_User_Infos';
+sDimClient = '}Clients';
+sDimParam ='z_Indicators_User_Param';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Cube_' | sCubeSource | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW RESET
+# ==================================================================================
+
+
+# -- Cube view name
+ViewCreate( sCubeSource , sViewName,1);
+
+# -- Subset creation on dimension }Clients
+sDim = '}Clients';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , vTM1USER , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+ViewZeroOut( sCubeSource , sViewName);
+
+
+# ==================================================================================
+# -- INPUT INIT VALUE
+# ==================================================================================
+
+CELLPUTS('No', sCubeSource ,  vTM1USER ,'TEMP' , 'User_Admin');
+CELLPUTS('No',sCubeSource ,  vTM1USER ,'TEMP' , 'Argos');
+CELLPUTS('No',sCubeSource ,  vTM1USER ,'TEMP' , 'HFO');
+CELLPUTS('None',sCubeSource ,  vTM1USER ,'TEMP' , 'Operational');
+CELLPUTS('No',sCubeSource ,  vTM1USER ,'TEMP' , 'BO_Admin');
+CELLPUTS('None',sCubeSource ,  vTM1USER ,'TEMP' , 'Pilot_Air');
+CELLPUTS('None',sCubeSource ,  vTM1USER ,'TEMP' , 'Pilot_Sea');
+CELLPUTS('No',sCubeSource ,  vTM1USER ,'TEMP' , 'MO_Admin');
+DataSourceCubeView = sViewName;
+
+
+
+
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion

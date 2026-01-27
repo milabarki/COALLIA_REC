@@ -1,0 +1,47 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Get_User_Info",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_RP_Get_User_Info.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z03_User_Infos",
+		"dataSourceNameForClient":"z03_User_Infos",
+		"view":"Par défaut"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pClient",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"Client",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"z_Indicators_User_Infos",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"Value",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300013"
+}

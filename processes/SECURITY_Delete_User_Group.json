@@ -1,0 +1,27 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_Delete_User_Group",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_Delete_User_Group.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pUserInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pGroupInit",
+			"Prompt":"",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[],
+	"UID": "176797033200026"
+}

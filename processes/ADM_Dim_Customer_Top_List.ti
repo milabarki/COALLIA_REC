@@ -1,0 +1,108 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : RUBIKS
+# Process : ADM_Dim_Customer_Top_List
+# Description : Update Subset 
+# Created by : MBO
+# Date : 23/04/2018
+# Update by: MBA 15/01/2026 – Rename the created subsets (replace } with z_Adm).
+#####################################
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'Customer_Top';
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+
+# Subset Niv0
+sSubsetName = 'z_Adm_RP_List_Level0_'|vDim;
+
+sMDX = '{ORDER({{EXCEPT( {TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'] )}, 0)}, {['|vDim|'].[TOTAL_OTHERS] })}}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+#SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+#SubsetElementDelete( vDim , sSubsetName , 1 );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+
+# Subset with HQ
+sSubsetName = 'z_Adm_RP_List_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' & vElt@<>'TOTAL_CUSTOMER'  & ELISPAR( vDim  , 'TOTAL_CUSTOMER' , vElt) <> 0 );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim ,sSubsetName , 'Label' );
+
+
+# Subset for context
+sSubsetName = 'z_Adm_RP_List_Context_'|vDim;
+IF( SubsetExists( vDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( vDim , sSubsetName );
+ELSE;
+	SubsetCreate( vDim , sSubsetName  );
+ENDIF;
+i = 1;
+k = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( vElt@<>'TOTAL_OTHERS' );
+		SubsetElementInsert( vDim , sSubsetName , vElt , k );
+		k = k + 1;
+	ENDIF;
+	i = i + 1;
+END;
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

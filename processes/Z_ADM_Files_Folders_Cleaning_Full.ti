@@ -1,0 +1,103 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#####################################
+# Project : RUBIKS
+# Process : Z_ADM_Files_Folders_Cleaning_Full
+# Description : Clean Files Folders
+# Created by : MBO
+# Date : 30/07/2021
+#####################################
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+vDim = 'Organization_ER_Full';
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+sSubsetName = 'Subset_Dim_' | vDim | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+# ==================================================================================
+# -- DELETE FILES 
+# ==================================================================================
+
+# Subset ER
+SubsetCreate( vDim , sSubsetName, 1 );
+i = 1;
+iMax = DIMSIZ ( vDim );
+WHILE ( i <= iMax);
+	vElt = DIMNM ( vDim  , i );
+	IF( ATTRS(vDim , vElt , 'Level')@='ER' );
+		SubsetElementInsert( vDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+nSize = SubsetGetSize(vDim, sSubsetName);
+
+i=1;
+WHILE( i<=nSize );
+
+	nE_Name = SubsetGetElementName(vDim, sSubsetName, i);
+
+	### File1 ###
+	zPath_Export1 = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S')|'Operational_Data\';
+	zFile_Name1 = nE_Name| '_Export_File.csv';
+	zFile1 =  zPath_Export1 | zFile_Name1;
+
+	IF ( FileExists( zFile1 ) <> 0);
+		ASCIIDelete ( zFile1 );
+	ENDIF;
+
+
+	### File2 ###
+	zPath_Export2 = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S')|'Front_Office\RUBIKS\';
+	zFile_Name2 = nE_Name| '_Export_File.csv';
+	zFile2 = zPath_Export2 | zFile_Name2;
+
+	IF ( FileExists( zFile2 ) <> 0);
+		ASCIIDelete ( zFile2 );
+	ENDIF;
+
+	### File3 ###
+	zPath_Export3 = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S')|'Pilot_Data\Input_Pilot\';
+	zFile_Name3 = 'Input_Pilot_' | nE_Name | '_Export_File.csv';
+	zFile3 =  zPath_Export3 | zFile_Name3;
+
+	IF ( FileExists( zFile3 ) <> 0);
+		ASCIIDelete ( zFile3 );
+	ENDIF;	
+
+
+	i=i+1;
+END;
+
+
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#endregion

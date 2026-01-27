@@ -1,0 +1,95 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_RP_IMP_Cube_Data_Loading_MASTER
+# Description : Data Import from FCT_N to BUDGET_N+1
+# Created by : MBO
+# Date : 18/05/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+sCubeWK = '080_Workflow';
+sTargetScenario = 'BUDGET_N+1';
+sCubeInfos = 'z03_User_Infos';
+
+vLock = 'unlock';
+
+# ==================================================================================
+# -- CHECKING LOCK/UNLOCK STATUS
+# ==================================================================================
+
+vLevel = ATTRS('Organization',pOrganization,'Level');
+IF( vLevel@<>'OCC' & vLevel@<>'OBC' ); 
+	PROCESSQUIT;
+ENDIF;
+
+vAv = CELLGETS ( sCubeWK , sTargetScenario , 'OPS' ,pOrganization  ,'Availability');
+IF( vAv@<>'Unlock');
+	PROCESSQUIT;
+ENDIF;
+
+### 30/04/2020  : Additionnal control for OBC import , user must have write access on all OCC link to OBC ###
+IF( vLevel@='OCC' % vLevel@='OBC' ); 
+	vAccess = CELLGETS( sCubeInfos ,  TM1USER()  ,'Operational' );
+	IF ( vAccess@<>'C' );
+		PROCESSQUIT;
+	ELSE;
+		IF( vLevel@='OBC' );
+
+			vDim = 'Organization';
+			i = 1;
+			iMax = ELCOMPN( vDim,pOrganization );
+			WHILE( i <= iMax );
+				vElt = ELCOMP( vDim,pOrganization,i ) ;
+				vLock = CELLGETS ( sCubeWK , sTargetScenario , 'OPS' ,vElt ,'Availability');
+				IF( vLock@='Lock');
+					PROCESSQUIT;
+				ENDIF;
+			i = i + 1;
+			END;
+
+		ENDIF;
+
+	ENDIF;
+ENDIF;
+
+
+# ==================================================================================
+# -- IMPORT PROCESS
+# ==================================================================================
+
+
+	EXECUTEPROCESS('BUDGET_ADM_Cube_093_Ratio_Init', 'pOrganization' , pOrganization);
+	EXECUTEPROCESS('Z_ADM_FLAG_SPREAD_FCT_N' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('FORECAST_ADM_Cube_012_Data_Spread_STEP1' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('FORECAST_ADM_Cube_012_Data_Spread_STEP2' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('BUDGET_RP_IMP_Cube_011_Data_Loading_STEP1' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('BUDGET_RP_IMP_Cube_011_Data_Loading_STEP2' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('BUDGET_RP_IMP_Cube_012_Data_Loading' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('BUDGET_ADM_Cube_012_Data_Spread_STEP2' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('BUDGET_RP_IMP_Cube_011_Data_Loading_STEP3' , 'pOrganization', pOrganization);
+	EXECUTEPROCESS('SCENARIO_RP_Cube_092_Proposed_Calculation','pOrganization', pOrganization , 'pScenario', 'BUDGET_N+1', 'pStatus' , 'N');
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

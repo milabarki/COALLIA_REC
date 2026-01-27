@@ -1,0 +1,45 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Project : RUBIKS
+# Process : Z_ADM_Clear_Groups
+# Description : Clear dimension }Groups
+# Created by : MBO
+# Date : 13/09/2018
+####################################
+
+# ==================================================================================
+# -- VARIABLE INITIALIZATION
+# ==================================================================================
+sDimOrga1 = 'Sales_Organization';
+sDimOrga2 = 'Organization_Pilot_Full';
+sDimOrga3 = 'ARGOS_Organization';
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+IF( SCAN( 'R_' , vElt ) <> 0 % SCAN( 'C_' , vElt ) <> 0 );
+	vOrga = SUBST( vElt , 3 , LONG(vElt) - 2 );
+	IF( DIMIX( sDimOrga1 , vOrga ) = 0 & DIMIX( sDimOrga2 , vOrga ) = 0 & DIMIX( sDimOrga3 , vOrga ) = 0 );
+		DimensionElementDelete( '}Groups' , vElt );
+	ENDIF;
+ENDIF;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

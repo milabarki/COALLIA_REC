@@ -1,0 +1,189 @@
+#region Prolog
+IF( pLockObj @<> '' ) ;
+           SYNCHRONIZED( pLockObj ) ;
+ENDIF ;
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SCENARIO_ADM_EXP_Cube_012_to_Flat
+# Description : 012 Data export to flat file
+# Created by : MBO
+# Date : 31/03/2021
+# Update 2024/05/06 : Add USD for export
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '012_OPS_Monthly_Input' ;
+sCubeTarget = sCubeSource;
+sCubeSource2 = '011_OPS_Yearly_Input' ;
+
+
+# Extract Path
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export = 'Export\Operational_Data\';
+
+# Technical Path
+zPath_Export_Tech = 'Technical\' ;
+zFile_Folder_Tech = zPath_Export_Tech;
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |pOrganization| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' | pOrganization| '_' |  GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'FCT_N' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 2 );
+IF ( pInit = 1 );
+	SubsetElementInsert( sDim , sSubsetName , 'ACT_N-1' , 3 );
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+SubsetElementInsert( sDim , sSubsetName , 'EUR' , 2 );
+# Update 2024/05/06 : Add USD for export
+SubsetElementInsert( sDim , sSubsetName , 'USD' , 3 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_Op
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElt = DIMNM ( sDim , i) ;
+	IF ( ELLEV ( sDim , vElt ) = 0 & ATTRN(sDim , vElt , 'Spread') = 1 );
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 0 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = ';';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA TRANSFERT 
+# ==================================================================================
+
+vER = ATTRS('Organization' , Organization , 'ER');
+
+zFile_Name = vER| '_Export_File.csv';
+zFile = zPath_Export  | zFile_Name;
+
+IF(  Customer_Top @= 'TOTAL_OTHERS' );
+	vProduct = 'XX';
+ELSE;
+	vProduct = ATTRS('Customer_Full' , Customer_Top , 'Product' );
+	IF( vProduct @= '' );
+		vProduct = 'XX';
+	ENDIF;
+ENDIF;
+
+
+### Get New Business Flag ###
+####################### 
+
+## DEV COM is forced to New business
+IF ( ELISANC ( 'Customer_Top' , '1-8W2SOI' , Customer_Top )<>0 );
+	vFlagT = 'Y1';
+ELSE;
+	vFlag = CELLGETN( sCubeSource2 , Currency , Scenario , Activity ,  Geo_From , Geo_To , Organization , Customer_Top , 'Flag_New_Business');
+	vFlagT=IF(vFlag> 0 ,'Y'|NumberToString(vFlag) , 'N1');
+
+ENDIF;
+
+
+ASCIIOUTPUT(zFile, Currency , Scenario ,vFlagT, Months , Activity ,  vProduct , Geo_From , Geo_To , Organization , Customer_Top , Indicators_Op , NumberToString(Value));
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+ASCIIOUTPUT( zFile_Folder_Tech | pOrganization | sCubeSource |'.txt' , pOrganization ) ;
+#endregion

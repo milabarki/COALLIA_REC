@@ -1,0 +1,48 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : BUDGET_ADM_Cube_022_Data_Spread_MASTER
+# Description : Data Import from OP To PILOT
+# Created by : MBO
+# Date : 08/10/2018
+####################################
+
+# Flag correction
+EXECUTEPROCESS('Z_ADM_FLAG_SPREAD_BUDGET_N+1_PILOT' , 'pOrganization', pOrganization );
+EXECUTEPROCESS('Z_ADM_FLAG_SPREAD_BUDGET_N+1_PILOT_STEP2' , 'pOrganization', pOrganization );
+
+# Spread operational data based on 7+5
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Data_Spread_STEP1' , 'pOrganization', pOrganization , 'pType' , pType);
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Data_Spread_STEP2' , 'pOrganization', pOrganization );
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Data_Spread_STEP3' , 'pOrganization', pOrganization,  'pType' , pType );
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Data_Spread_STEP4' , 'pOrganization', pOrganization , 'pType' , pType);
+
+
+# Monthly breakdown  based on Actual N-1
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Monthly_Breakdown_STEP1' , 'pOrganization', pOrganization , 'pType' , pType);
+EXECUTEPROCESS('BUDGET_ADM_Cube_022_Monthly_Breakdown_STEP2' , 'pOrganization', pOrganization , 'pType' , pType);
+
+
+
+# Data Copy to 021
+EXECUTEPROCESS('SCENARIO_ADM_EXP_Cube_022_Init_to_Flat' , 'pOrganization', pOrganization , 'pType' , pType);
+EXECUTEPROCESS('SCENARIO_ADM_IMP_Cube_021_Data_Loading' , 'pOrganization', pOrganization , 'pType' , pType);
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

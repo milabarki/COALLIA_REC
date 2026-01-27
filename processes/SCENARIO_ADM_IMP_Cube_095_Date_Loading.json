@@ -1,0 +1,41 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO_ADM_IMP_Cube_095_Date_Loading",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"SCENARIO_ADM_IMP_Cube_095_Date_Loading.ti",
+	"DataSource":
+	{
+		"Type":"ODBC",
+		"dataSourceNameForServer":"RUBIKS_DEV",
+		"dataSourceNameForClient":"RUBIKS_DEV",
+		"userName":"IUSR_CUBE",
+		"password":"IUSR_CUBE",
+		"query":"SELECT\r\n\tCUR_CD,\r\n\tCUR_SCENARIO_CD,\r\n\tCUR_RATE_EUR\r\nFROM \r\n\t[BUD].[DIM_CURRENCY]"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"CUR_CD",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"CUR_SCENARIO_CD",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"CUR_RATE_EUR",
+			"Type":"Numeric",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "17679703320000"
+}

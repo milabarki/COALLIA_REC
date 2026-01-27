@@ -1,0 +1,173 @@
+#region Prolog
+IF( pLockObj @<> '' ) ;
+           SYNCHRONIZED( pLockObj ) ;
+ENDIF ;
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#############################################################
+# Process : SCENARIO_ADM_IMP_Cube_018_OPS_OBC_Data_Loading
+# Description : 018 OPS OBC Data Loading from 018_OPS_Full
+# Created by : MBA
+# Date : 15/12/2025
+#############################################################
+
+
+
+# ============================================================
+# --  VARIABLES
+# ============================================================
+
+sCubeSource = '018_OPS_Full' ;
+sCubeTarget  = '018_OPS_OBC' ;
+
+
+# Extract Path
+zServer = CELLGETS('z01_Admin_Param' , 'CONSO_SERVER_NAME' , 'STR_VAR_S');
+zPath_Export = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S')|'Budget_Extract_OBC\';
+
+# Technical Path
+zPath_Export_Tech = CELLGETS('z01_Admin_Param' , 'REP_EXPORT' , 'STR_VAR_S') | 'Technical\' ;
+zFile_Folder_Tech = zServer | zPath_Export_Tech;
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |pOrganization| '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+sTargetViewName = 'View_Target_Cube_' | sCubeSource | '_' | vTM1USER | '_' |pOrganization| '_' |   GetProcessName() ;
+sTargetSubsetName = 'Subset_Target_Cube_' | sCubeSource | '_' | vTM1USER | '_' | pOrganization| '_' |  GetProcessName() ;
+
+
+# ============================================================
+# -- SOURCE VIEW CREATION
+# ============================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario -------------------------------------------------
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'BUDGET_N+1' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Currency -------------------------------------------------
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'LCY' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization --------------------------------------------
+sDim = 'Organization';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+
+IF ( ELLEV( sDim , pOrganization ) =0 );
+	SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ELSE;
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( i <= iMax );
+		vElt = DIMNM ( sDim , i) ;
+		IF ( ELISANC ( sDim , pOrganization, vElt ) <> 0 );
+			SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+		ENDIF;
+		i = i + 1;
+	END;
+ENDIF;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Indicators_Op ------------------------------------------
+sDim = 'Indicators_Op';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName,1 );
+ENDIF;
+
+i = 1;
+iMax = DIMSIZ( sDim );
+WHILE( i <= iMax );
+	vElt = DIMNM ( sDim , i) ;
+	IF ( ELLEV ( sDim , vElt ) = 0 & ATTRN(sDim , vElt , 'Spread') = 1 );
+		SubsetElementInsert( sDim , sSubsetName , vElt , 1 );
+	ENDIF;
+	i = i + 1;
+END;
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+# ============================================================
+# -- TARGET VIEW CREATION
+# ============================================================
+
+ViewCreate( sCubeTarget , sTargetViewName , 1);
+
+
+
+ViewZeroOut( sCubeTarget , sTargetViewName );
+
+# ============================================================
+# -- DATASOURCE PARAMETERS
+# ============================================================
+
+#-- Update the view parameters -----------------------------------------------------------------
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source ----------------------------------------------------
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+DatasourceASCIIQuoteCharacter = '';
+DatasourceASCIIDelimiter = ';';
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA Load
+# ==================================================================================
+sDim = 'Organization';
+vOrganization_OBC = ATTRS(sDim, Organization , 'OBC') ;
+
+IF( vOrganization_OBC @<> '');
+       CellIncrementN ( Value , sCubeTarget , Currency, Scenario,Months , Activity, Geo_From , Geo_To , vOrganization_OBC, Customer_Actual  , Indicators_Op );
+EndIf;
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+ASCIIOUTPUT( zFile_Folder_Tech | pOrganization | sCubeSource |'.txt' , pOrganization ) ;
+#endregion

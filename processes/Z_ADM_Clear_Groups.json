@@ -1,0 +1,25 @@
+{
+	"@type":"Process",
+	"Name":"Z_ADM_Clear_Groups",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"Z_ADM_Clear_Groups.ti",
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForServer":"}Groups",
+		"dataSourceNameForClient":"}Groups",
+		"subset":"All"
+	},
+	"Parameters":[],
+	"Variables":
+	[
+		{
+			"Name":"vElt",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	],
+	"UID": "176797033300035"
+}

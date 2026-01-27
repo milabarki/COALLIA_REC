@@ -1,0 +1,13 @@
+{
+	"@type":"Process",
+	"Name":"SCENARIO ==============================",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"SCENARIO ==============================.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "17679703310002"
+}

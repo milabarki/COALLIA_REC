@@ -1,0 +1,55 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#####################################
+# Project : RUBIKS_Flash
+# Process : ARG_SECURITY_Check_Calendar
+# Description : Check the loading period
+# Created by : MBO
+# Date : 24/11/2021
+#####################################
+
+
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Activity','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Activity_Log_Excl');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Customer','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Customer_List');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Customer_ExceptBLX');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Customer_ExceptBLX_DEV');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Customer_Level0_ExceptBLX');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Geo_From','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Geo_To','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Organization_STEP1','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Organization_STEP2');
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Product','pInit',1);
+EXECUTEPROCESS('ARG_ADM_Dim_ARGOS_Tradelane','pInit',1);
+EXECUTEPROCESS('ARG_SCENARIO_ADM_IMP_Cube_030_Data_Loading');
+EXECUTEPROCESS('ARG_SCENARIO_ADM_IMP_Cube_030_Growth_Calculation');
+EXECUTEPROCESS('ARG_SCENARIO_ADM_IMP_Cube_z10_Effect_Calculation_STEP1');
+EXECUTEPROCESS('ARG_SCENARIO_ADM_IMP_Cube_z10_Effect_Calculation_STEP2');
+EXECUTEPROCESS('ARG_SCENARIO_ADM_IMP_Cube_031_Effect_Copy');
+EXECUTEPROCESS('ARG_SECURITY_Group_Creation_From_ARGOS_Organization');
+EXECUTEPROCESS('ARG_SECURITY_Assign_UserGroup_From_User_Infos', 'pUser','');
+EXECUTEPROCESS('ADM_Dim_Organization_Security_STEP1','pInit',1);
+EXECUTEPROCESS('ADM_Dim_Organization_Security_STEP2');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

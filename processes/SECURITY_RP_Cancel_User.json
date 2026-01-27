@@ -1,0 +1,16 @@
+{
+	"@type":"Process",
+	"Name":"SECURITY_RP_Cancel_User",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"SECURITY_RP_Cancel_User.ti",
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForServer":"z09_Temp_User_Management",
+		"dataSourceNameForClient":"z09_Temp_User_Management",
+		"view":"Par défaut"
+	},
+	"Parameters":[],
+	"Variables":[],
+	"UID": "176797033300010"
+}

@@ -1,0 +1,323 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : ARG_SCENARIO_ADM_IMP_Cube_z10_Effect_Calculation_STEP2
+# Description : z10
+# Created by : MBO
+# Date : 12/06/2020
+# Update 21/05/2025 : Add USD calculation
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = 'z10_Argos_Effect_YTD' ;
+sCubeTarget = sCubeSource;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+sViewNameTarget = 'View_Target_Cube_' | sCubeTarget | '_' | vTM1USER| '_' |   GetProcessName() ;
+sSubsetNameTarget = 'Subset_Target_Cube_' | sCubeTarget | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+
+#-- Subset creation on dimension Currency
+sDim = 'Currency';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'EUR' , 1 );
+
+# 2024/05/21 :Add Effect for USD
+SubsetElementInsert( sDim , sSubsetName , 'USD' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Scenario
+sDim = 'ARGOS_Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'ACT_N' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension ARGOS_Indicators
+sDim = 'ARGOS_Indicators';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'GM' , 1 );
+
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+# ==================================================================================
+# -- TARGET VIEW RESET
+# ==================================================================================
+# -- Cube view name
+
+ViewCreate( sCubeTarget , sViewNameTarget,1);
+
+#-- Subset creation on dimension ARGOS_Indicators
+sDim = 'ARGOS_Indicators';
+IF( SubsetExists( sDim, sSubsetNameTarget ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetNameTarget );
+ELSE;
+	SubsetCreate( sDim , sSubsetNameTarget , 1);
+ENDIF;
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FX_EFF_VS_BUDGET_N' , 1 );
+SubsetElementInsert( sDim , sSubsetNameTarget , 'FX_EFF_VS_ACT_N-1' , 2 );
+
+ViewSubsetAssign( sCubeTarget , sViewNameTarget , sDim , sSubsetNameTarget );
+
+ViewZeroOut( sCubeTarget , sViewNameTarget );
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- DATA LOADING
+# ==================================================================================
+
+
+
+IF( ARGOS_Scenario @= 'ACT_N');
+
+	vScenarioToCompare = 'BUDGET_N';
+	vInd = ATTRS ( 'ARGOS_Activity' ,ARGOS_Activity ,'Ind');
+	vInd = IF( SCAN('LCL', ARGOS_Activity) <> 0, 'TEUS' , ATTRS ( 'ARGOS_Activity' ,ARGOS_Activity ,'Ind'));
+
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='EUR');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+
+			vCurr = ATTRS( 'ARGOS_Organization' , ARGOS_Organization , 'Currency');
+			vValACT = CELLGETN(  sCubeTarget,Currency,Months_YTD, ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+			vVolACT = CELLGETN(  sCubeTarget,Currency,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,  vInd );
+
+			IF ( vVolACT<>0);
+
+				vUMACT = (vValACT*1000)/vVolACT;
+
+				## Rate Calculation ##
+
+				## ACT ##
+				vEURACT = CELLGETN(  sCubeTarget,'EUR' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vRateACT = vEURACT /vLCYACT;
+
+				## BGT ##
+				vEURBGT = CELLGETN(  sCubeTarget,'EUR' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYBGT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				
+				IF( vLCYBGT<> 0 & vEURBGT<> 0);
+					vRateBGT = vEURBGT /vLCYBGT;
+				ELSE;
+					ITEMSKIP;
+				ENDIF;
+
+				vFxEff = (((vUMACT/vRateBGT)*vRateACT)- vUMACT)*vVolACT;
+
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'FX_EFF_VS_BUDGET_N' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+# 2024/05/21 :Add Effect for USD
+	IF( Currency@='USD');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+
+			vCurr = ATTRS( 'ARGOS_Organization' , ARGOS_Organization , 'Currency');
+			vValACT = CELLGETN(  sCubeTarget,Currency,Months_YTD, ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+			vVolACT = CELLGETN(  sCubeTarget,Currency,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,  vInd );
+
+			IF ( vVolACT<>0);
+
+				vUMACT = (vValACT*1000)/vVolACT;
+
+				## Rate Calculation ##
+
+				## ACT ##
+				vUSDACT = CELLGETN(  sCubeTarget,'USD' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vRateACT = vUSDACT /vLCYACT;
+
+				## BGT ##
+				vUSDBGT = CELLGETN(  sCubeTarget,'USD' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYBGT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				
+				IF( vLCYBGT<> 0 & vUSDBGT<> 0);
+					vRateBGT = vUSDBGT /vLCYBGT;
+				ELSE;
+					ITEMSKIP;
+				ENDIF;
+
+				vFxEff = (((vUMACT/vRateBGT)*vRateACT)- vUMACT)*vVolACT;
+
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'FX_EFF_VS_BUDGET_N' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+
+
+ENDIF;
+
+
+
+IF( ARGOS_Scenario @= 'ACT_N');
+
+	vScenarioToCompare = 'ACT_N-1';
+	vInd = ATTRS ( 'ARGOS_Activity' ,ARGOS_Activity ,'Ind');
+	vInd = IF( SCAN('LCL', ARGOS_Activity) <> 0, 'TEUS' , ATTRS ( 'ARGOS_Activity' ,ARGOS_Activity ,'Ind'));
+
+	### FX EFFECT CALCULATION ###
+	IF( Currency@='EUR');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+
+			vCurr = ATTRS( 'ARGOS_Organization' , ARGOS_Organization , 'Currency');
+			vValACT = CELLGETN(  sCubeTarget,Currency,Months_YTD, ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+			vVolACT = CELLGETN(  sCubeTarget,Currency,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,  vInd );
+
+			IF ( vVolACT<>0);
+
+				vUMACT = (vValACT*1000)/vVolACT;
+
+				## Rate Calculation ##
+
+				## ACT ##
+				vEURACT = CELLGETN(  sCubeTarget,'EUR' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vRateACT = vEURACT /vLCYACT;
+
+				## BGT ##
+				vEURACTN1 = CELLGETN(  sCubeTarget,'EUR' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACTN1 = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				
+				IF( vLCYACTN1<> 0 & vEURACTN1<> 0);
+					vRateACTN1 = vEURACTN1 /vLCYACTN1;
+				ELSE;
+					ITEMSKIP;
+				ENDIF;
+
+				vFxEff = (((vUMACT/vRateACTN1)*vRateACT)- vUMACT)*vVolACT;
+
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'FX_EFF_VS_ACT_N-1' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+# 2024/05/21 :Add Effect for USD
+	IF( Currency@='USD');
+
+		IF( vInd@<>'NA' & vInd@<>'FT');
+
+			vCurr = ATTRS( 'ARGOS_Organization' , ARGOS_Organization , 'Currency');
+			vValACT = CELLGETN(  sCubeTarget,Currency,Months_YTD, ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+			vVolACT = CELLGETN(  sCubeTarget,Currency,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,  vInd );
+
+			IF ( vVolACT<>0);
+
+				vUMACT = (vValACT*1000)/vVolACT;
+
+				## Rate Calculation ##
+
+				## ACT ##
+				vUSDACT = CELLGETN(  sCubeTarget,'USD' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACT = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vRateACT = vEURACT /vLCYACT;
+
+				## BGT ##
+				vUSDACTN1 = CELLGETN(  sCubeTarget,'USD' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				vLCYACTN1 = CELLGETN(  sCubeTarget,'LCY' ,Months_YTD,vScenarioToCompare, ARGOS_Activity , ARGOS_Organization ,'GM' );
+				
+				IF( vLCYACTN1<> 0 & vUSDACTN1<> 0);
+					vRateACTN1 = vUSDACTN1 /vLCYACTN1;
+				ELSE;
+					ITEMSKIP;
+				ENDIF;
+
+				vFxEff = (((vUMACT/vRateACTN1)*vRateACT)- vUMACT)*vVolACT;
+
+
+				CELLPUTN( vFxEff/1000 , sCubeTarget,Currency ,Months_YTD,ARGOS_Scenario, ARGOS_Activity , ARGOS_Organization ,'FX_EFF_VS_ACT_N-1' );
+			ENDIF;
+
+		ENDIF;
+	ENDIF;
+
+
+
+ENDIF;
+
+
+
+
+
+
+
+
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+#endregion

@@ -1,0 +1,453 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Project :  RUBIKS
+# Process : SCENARIO_RP_Cube_072_Save_Business
+# Description : 072_New_Business : Copy business for an oragnization in  022_Input_Pilot
+# Created by : MBO
+# Date : 09/05/2018
+####################################
+
+
+# ==================================================================================
+# --  VARIABLES
+# ==================================================================================
+
+sCubeSource = '072_New_Business';
+sCubeTarget = '022_Input_Pilot';
+
+vDim_Customer = 'Customer_Actual';
+vDim_Customer_Full = 'Customer_Full';
+vTotal='TOTAL_CUSTOMER';
+
+vDim_Load_Loc = 'Loading_Location';
+vDim_Off_Loc = 'Offloading_Location';
+
+vDim_Load_Loc_Full = 'Loading_Location_Full';
+vDim_Off_Loc_Full = 'Offloading_Location_Full';
+
+vDim_Month = 'Months';
+
+zIndicator = IF( pType @= 'SEA' , 'TEUS', 'CW');
+
+## Ownership
+IF( pStatus @<> 'N' );
+	PROCESSQUIT;
+ENDIF;
+
+# Reject Path
+zProcess = GetProcessName();
+zPath_Reject = CELLGETS('z01_Admin_Param' , 'REP_REJECTS' , 'STR_VAR_S');
+zFile_Name = zProcess | '_Rejects_File.csv';
+zFile = zPath_Reject | zFile_Name;
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CREATION
+# ==================================================================================
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Months
+sDim = 'Months';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'TOTAL_VALUE' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators_New_Business
+sDim = 'Indicators_New_Business';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , 'Insert' , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+
+#-- Update the view parameters
+ViewExtractSkipZeroesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipRuleValuesSet ( sCubeSource, sViewName , 1 );
+ViewExtractSkipCalcsSet ( sCubeSource, sViewName , 1 );
+
+#-- Assign the view to the process source
+DataSourceNameForServer = sCubeSource;
+DataSourceCubeView = sViewName;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+zCustomer = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator,'Customer' );
+zPOL = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows ,zIndicator, 'POL' );
+zPOD = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator,'POD' );
+
+#================================================================
+# INSERT DIMENSION ELEMENT
+#================================================================
+
+#-- Insert element in Customer dimension if it doesn't exist
+
+IF( DIMIX( vDim_Customer , zCustomer ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Customer , '' , zCustomer , 'n' );
+
+#-- Retrieve the HQ if it doesn't exist from Customer_Full dimension
+
+	zHQ = ELPAR( vDim_Customer_Full , zCustomer , 1 );
+	IF( zHQ @<> 'TOTAL_CUSTOMER' );
+		IF(  DIMIX( vDim_Customer , zCustomer ) = 0 );
+			DIMENSIONELEMENTINSERT( vDim_Customer , '' , zHQ , 'n' );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer , zHQ , zCustomer , 1.000000 );
+		ELSE;
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer , vTotal , zHQ , 1.000000 );
+			DIMENSIONELEMENTCOMPONENTADD( vDim_Customer , zHQ , zCustomer , 1.000000 );
+		ENDIF;
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Customer , vTotal , zCustomer , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+#-- Insert element in Loading_Location dimension if it doesn't exist
+
+IF( DIMIX( vDim_Load_Loc , zPOL ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zPOL , 'n' );
+
+#-- Recovery of the parent from Loading_Location_Full dimension
+
+	zLoc_Par1 = ELPAR( vDim_Load_Loc_Full , zPOL , 1 );
+	IF(  DIMIX( vDim_Load_Loc , zLoc_Par1 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zLoc_Par1 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par1 , zPOL , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par1 , zPOL , 1.000000 );
+	ENDIF;
+
+#-- Recovery of the level 2 hierarchy from Loading_Location_Full dimension
+
+	zLoc_Par2 = ELPAR( vDim_Load_Loc_Full , zLoc_Par1 , 1 );
+	IF(  DIMIX( vDim_Load_Loc , zLoc_Par2 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Load_Loc , '' , zLoc_Par2 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Load_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ENDIF;
+
+ENDIF;
+
+
+
+
+
+#-- Insert element in Offloading_Location dimension if it doesn't exist
+
+IF( DIMIX( vDim_Off_Loc , zPOD ) = 0 );
+
+	DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zPOD , 'n' );
+
+#-- Recovery of the parent from Offloading_Location_Full dimension
+
+	zLoc_Par1 = ELPAR( vDim_Off_Loc_Full , zPOD , 1 );
+	IF(  DIMIX( vDim_Off_Loc , zLoc_Par1 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zLoc_Par1 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par1 , zPOD , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par1 , zPOD , 1.000000 );
+	ENDIF;
+
+#-- Recovery of the level 2 hierarchy from Offloading_Location_Full dimension
+
+	zLoc_Par2 = ELPAR( vDim_Off_Loc_Full , zLoc_Par1 , 1 );
+	IF(  DIMIX( vDim_Off_Loc , zLoc_Par2 ) = 0 );
+		DIMENSIONELEMENTINSERT( vDim_Off_Loc , '' , zLoc_Par2 , 'n' );
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ELSE;
+		DIMENSIONELEMENTCOMPONENTADD( vDim_Off_Loc , zLoc_Par2 , zLoc_Par1 , 1.000000 );
+	ENDIF;
+
+ENDIF;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+
+zCustomer = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator,  'Customer');
+zPOL = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator,  'POL');
+zPOD = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator , 'POD');
+zTrade = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator, 'Trade');
+zCarrier = CELLGETS( sCubeSource , Scenario , Months , Organization , Nb_Rows , zIndicator, 'Carrier');
+
+
+# ==================================================================================
+# -- ATTRIBUTES
+# ==================================================================================
+
+#-- Customer dimensions attributes management
+
+
+#-- Label
+
+zCust_Lab = ATTRS( vDim_Customer , zCustomer , 'Label' );
+IF( zCust_Lab @= '' );
+	zCust_Lab = ATTRS( vDim_Customer_Full , zCustomer , 'Label' );
+	ATTRPUTS( zCust_Lab , vDim_Customer , zCustomer , 'Label' );
+ENDIF;
+
+
+#-- Location dimensions attributes management
+
+#-- Label
+
+zLoad_Loc_Lab = ATTRS( vDim_Load_Loc , zPOL , 'Label' );
+IF( zLoad_Loc_Lab @= '' );
+	zLoad_Loc_Lab = ATTRS( vDim_Load_Loc_Full , zPOL , 'Label' );
+	ATTRPUTS( zLoad_Loc_Lab , vDim_Load_Loc , zPOL , 'Label' );
+ENDIF;
+
+zOff_Loc_Lab = ATTRS( vDim_Off_Loc , zPOD , 'Label' );
+IF( zOff_Loc_Lab @= '' );
+	zOff_Loc_Lab = ATTRS( vDim_Off_Loc_Full , zPOD , 'Label' );
+	ATTRPUTS( zOff_Loc_Lab , vDim_Off_Loc , zPOD , 'Label' );
+ENDIF;
+
+### --  FLAG NEW BUSINESS/ CUSTOMER
+vDim_Month = 'Months';
+
+vExistNB = CELLGETN ( sCubeTarget , Scenario, 'TOTAL_YEAR'  ,'TOTAL_CARRIER' , 'TOTAL_TRADE' , 'TOTAL_LOC' , 'TOTAL_OFF_LOC' , Organization , zCustomer , zIndicator );
+
+IF( vExistNB = 0 );
+	CELLPUTN ( 1 , sCubeTarget , Scenario, 'TOTAL_VALUE' , zCarrier , zTrade , zPOL , zPOD , Organization , zCustomer , 'New_Business_'|pType ); 
+ENDIF;
+
+
+# ==================================================================================
+# -- LOADING OF TARGET CUBE
+# ==================================================================================
+
+i=1;
+WHILE ( i <= 12 );
+	IF( LONG( numbertostring ( i ) ) =1 );
+		zMonth_Label = '0' | numbertostring ( i );
+	ELSEIF( LONG( numbertostring ( i ) ) =2 );
+		zMonth_Label = numbertostring ( i );
+	ENDIF;
+
+	zMonth = DimensionElementPrincipalName( vDim_Month , zMonth_Label );
+
+#### --------> Loading of RF022_Input_Pilot
+
+	vValue = CELLGETN ( sCubeSource , Scenario , zMonth , Organization , Nb_Rows , zIndicator , zIndicator);
+	CELLPUTN ( vValue , sCubeTarget , Scenario , zMonth ,  zCarrier , zTrade ,zPOL , zPOD  , Organization , zCustomer , zIndicator );
+
+	i = i+1;
+END;
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+vTM1USER = IF( SCAN ( '*' , TM1USER() ) <> 0 , DELET( TM1USER() , 2 , 1 ) , TM1USER());
+
+sViewName = 'View2_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+sSubsetName = 'Subset2_Source_Cube_' | sCubeSource | '_' | vTM1USER | '_' |   GetProcessName() ;
+
+
+# ==================================================================================
+# -- SOURCE VIEW CLEANING
+# ==================================================================================
+
+
+ViewCreate( sCubeSource , sViewName , 1);
+
+#-- Subset creation on dimension Scenario
+sDim = 'Scenario';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pScenario , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Organization
+sDim = 'Organization_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , pOrganization , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+#-- Subset creation on dimension Indicators Pilot
+sDim = 'Indicators_Pilot';
+IF( SubsetExists( sDim, sSubsetName ) = 1 );
+	SubsetDeleteAllElements( sDim , sSubsetName );
+ELSE;
+	SubsetCreate( sDim , sSubsetName, 1 );
+ENDIF;
+SubsetElementInsert( sDim , sSubsetName , zIndicator , 1 );
+ViewSubsetAssign( sCubeSource , sViewName , sDim , sSubsetName );
+
+ViewZeroOut( sCubeSource , sViewName );
+
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+# Dimension Loading_Location
+vDim = 'Loading_Location';
+
+# Susbet Level0 without Label
+sSubsetName = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+sSubNiv0 = '}RP_List_Level0_Loading_Location';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubNiv0 , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubNiv0 , 1 );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+
+
+# Dimension Offloading_Location
+vDim = 'Offloading_Location';
+
+# Susbet Level0 without Label
+sSubsetName = '}RP_List_Level0_WL_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+sSubNiv0 = '}RP_List_Level0_Loading_Location';
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubNiv0 , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubNiv0 , 1 );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+
+
+# Dimension Customer_Actual
+vDim = 'Customer_Actual';
+
+# Susbet Level0 without Label
+sSubNiv0 = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL({Descendants({['|vDim|'].[TOTAL_CUSTOMER]})}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubNiv0 );
+SUBSETCREATEBYMDX( sSubNiv0 , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubNiv0 , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubNiv0 , 1 );
+
+SubsetAliasSet( vDim , sSubNiv0 , 'Label' );
+
+#sSub
+sSub = '}RP_List_'|vDim;
+sMDX = ' { EXCEPT( { DRILLDOWNMEMBER( {TM1FILTERBYPATTERN( {TM1SUBSETALL( ['|vDim|'] )}, "TOTAL_CUSTOMER")}, {['|vDim|'].[TOTAL_CUSTOMER]} ) }, { ['|vDim|'].[TOTAL_CUSTOMER] })  }';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSub );
+SUBSETCREATEBYMDX( sSub, sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSub , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSub , 1 );
+
+SubsetAliasSet( vDim , sSub , 'Label' );
+#endregion

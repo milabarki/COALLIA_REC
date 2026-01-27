@@ -1,0 +1,78 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+####################################
+# Process : SECURITY_Delet_Client_Group
+# Description : Clean Client and Group
+# Created by : MBO
+# Date : 05/05/2017
+####################################
+
+
+# ==================================================================================
+# -- CLIENT CLEAN
+# ==================================================================================
+
+IF( pUserInit =1 );
+
+	#-- Subset creation on dimension }Client
+	sDim ='}Clients';
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( iMax >= i );
+		vElem = DIMNM( sDim , iMax );
+		IF( vElem @<> 'Admin' & vElem @<> 'DataAdmin' & vElem @<> 'SecurityAdmin' );
+			DeleteClient( vElem);
+		ENDIF;
+		iMax = iMax - 1;
+	
+	END;
+ENDIF;
+
+# ==================================================================================
+# -- GROUP CLEAN
+# ==================================================================================
+
+
+IF( pGroupInit =1 );
+
+
+	#-- Subset creation on dimension }Groups
+	sDim = '}Groups';
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( iMax >= i );
+		vElem = DIMNM( sDim , iMax );
+		IF(  SUBST(vElem, 1, 1 )@= 'C' % SUBST(vElem, 1, 1 )@= 'R');
+			DeleteGroup( vElem);
+		ENDIF;
+		iMax = iMax - 1;
+	
+	END;
+ENDIF;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+securityrefresh;
+
+#endregion

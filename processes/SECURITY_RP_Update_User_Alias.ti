@@ -1,0 +1,82 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+####################################
+# Process : SECURITY_RP_Update_User_Alias
+# Description : Upadte client alias
+# Created by : MBO
+# Date : 30/04/2019
+####################################
+
+vCube = 'z03_User_Infos';
+
+
+
+## Update all user
+IF( pUser @='' );
+
+	sDim ='}Clients';
+	i = 1;
+	iMax = DIMSIZ( sDim );
+	WHILE( iMax >= i );
+		vElem = DIMNM( sDim , iMax );
+		IF( vElem @<> 'Admin' & vElem @<> 'DataAdmin' & vElem @<> 'SecurityAdmin' );
+
+			vFirstName = CELLGETS(vCube  , vElem ,'First_Name');
+			vFirstLetter= SUBST(vFirstName, 1,1);
+			vEndOfName = SUBST(vFirstName, 2,LONG(vFirstName)-1);
+			vFirstName= UPPER(vFirstLetter)|vEndOfName;
+
+			vLastName = CELLGETS(vCube  , vElem ,'Last_Name');
+			vLabel = UPPER(vLastName)|' '|vFirstName;
+
+			IF(vLastName@<>'');
+				ATTRPUTS( vLabel ,'}Clients',vElem, '}TM1_DefaultDisplayValue');
+				ATTRPUTS( vElem ,'}Clients' ,vElem, 'Login');
+			ENDIF;
+
+
+
+		ENDIF;
+		iMax = iMax - 1;
+	
+	END;
+
+ELSE;
+	## Update a single user
+	vFirstName =CELLGETS(vCube  , pUser ,'First_Name');
+	vFirstLetter= SUBST(vFirstName, 1,1);
+	vEndOfName = SUBST(vFirstName, 2,LONG(vFirstName)-1);
+	vFirstName= UPPER(vFirstLetter)|vEndOfName;
+
+	vLastName = CELLGETS(vCube , pUser ,'Last_Name');
+	vLabel = UPPER(vLastName)|' '|vFirstName;
+
+	ATTRPUTS( vLabel ,'}Clients' ,pUser, '}TM1_DefaultDisplayValue');
+	ATTRPUTS( pUser ,'}Clients' ,pUser, 'Login');
+
+ENDIF;
+
+
+
+
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

@@ -1,0 +1,182 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#####################################
+# Project : ARGOS_BUDGET
+# Process : ARG_ADM_Dim_ARGOS_Activity
+# Description : Init Activity 
+# Created by : MBO
+# Date : 08/02/2018
+#####################################
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zProcess = GetProcessName();
+zStart = NOW();
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Init', 
+              'pProcess', zProcess
+);
+
+
+# ==================================================================================
+# -- VARIABLES
+# ==================================================================================
+vDim = 'ARGOS_Activity';
+
+
+Nb_Lign = 0 ;
+Nb_Load = 0;
+
+
+# ==================================================================================
+# -- INIT OF DIMENSION
+# ==================================================================================
+IF( pInit = 1 );
+	DIMENSIONDELETEALLELEMENTS(vDim);
+ENDIF;
+DIMENSIONSORTORDER(vDim,'BYINPUT','ASCENDING','BYHIERARCHY','ASCENDING');
+
+
+vTotal='TOTAL_ACTIVITY';
+
+
+# ==================================================================================
+# -- CREATION OF ATTRIBUTS
+# ==================================================================================
+vDimTech = '}ElementAttributes_'|vDim;
+
+AttributeToAdd = 'Label';
+AttributeToAddType = 'A';
+IF ( DIMIX( vDimTech , AttributeToAdd ) = 0 );
+	ATTRINSERT( vDim , '' , AttributeToAdd , AttributeToAddType );
+ENDIF;
+
+
+# ==================================================================================
+# -- DATASOURCE PARAMETERS
+# ==================================================================================
+vCubeParam = 'z01_Admin_Param';
+
+DatasourceNameForServer=CELLGETS(vCubeParam , 'DATASOURCE_NAME' , 'STR_VAR_S');
+DatasourceUserName= CELLGETS(vCubeParam , 'DATASOURCE_USR' , 'STR_VAR_S');
+DatasourcePassword= CELLGETS(vCubeParam , 'DATASOURCE_PWD' , 'STR_VAR_S');
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#================================================================
+# NUMBER OF ROW ( READ )
+#================================================================
+Nb_Lign = Nb_Lign + 1 ;
+
+
+#================================================================
+# INSERT DIMENSION ELEMENTS
+#================================================================
+
+
+DIMENSIONELEMENTINSERT(vDim,'',vTotal,'c');
+DIMENSIONELEMENTINSERT(vDim,'',ACT_LEVEL2_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',ACT_LEVEL1_CD,'n');
+DIMENSIONELEMENTINSERT(vDim,'',ACT_RUBIKS_CD,'n');
+
+DIMENSIONELEMENTCOMPONENTADD(vDim,vTotal,ACT_LEVEL2_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,ACT_LEVEL2_CD,ACT_LEVEL1_CD,1.000000);
+DIMENSIONELEMENTCOMPONENTADD(vDim,ACT_LEVEL1_CD,ACT_RUBIKS_CD,1.000000);
+
+
+#================================================================
+# NUMBER OF ROW ( INSERT )
+#================================================================
+Nb_Load = Nb_Load+1;
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+#================================================================
+# ATTRIBUTS 
+#================================================================
+
+ATTRPUTS('Total Activity',vDim, vTotal , 'Label');
+ATTRPUTS(ACT_LEVEL2_LB,vDim, ACT_LEVEL2_CD , 'Label');
+ATTRPUTS(ACT_LEVEL1_LB,vDim, ACT_LEVEL1_CD , 'Label');
+ATTRPUTS(ACT_RUBIKS_LB,vDim, ACT_RUBIKS_CD , 'Label');
+
+ATTRPUTS(ACT_IND_CD,vDim, ACT_RUBIKS_CD , 'Ind');
+
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# ==================================================================================
+# -- Subset Alimentation
+# ==================================================================================
+
+
+# Subset Expand list
+sSubsetName = '}RP_List_'|vDim;
+sMDX = '{TM1SUBSETALL( ['|vDim|'] )}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim ,sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+SubsetAliasSet( vDim ,sSubsetName , 'Label' );
+
+#Subset Level0
+sSubsetName = '}RP_List_Level0_'|vDim;
+sMDX = '{ORDER({TM1FILTERBYLEVEL( {TM1SUBSETALL( ['|vDim|'])}, 0)}, ['|vDim|'].CurrentMember.Properties("Label"), BASC)}';
+
+# -- Create the MDX
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATEBYMDX( sSubsetName , sMDX );
+
+# -- Convert the MDX-based subset into a static subset
+SubsetElementInsert( vDim , sSubsetName , Dfrst( vDim ), 1 );
+SubsetElementDelete( vDim , sSubsetName , 1 );
+
+SubsetAliasSet( vDim , sSubsetName , 'Label' );
+
+
+# Subset Chartering
+sSubsetName  = '}RP_List_Chartering_'|vDim;
+SUBSETDESTROY( vDim , sSubsetName );
+SUBSETCREATE(vDim,  sSubsetName);
+
+SubsetElementInsert( vDim , sSubsetName  , 'AIR_CHART_EXP', 1 );
+SubsetElementInsert( vDim , sSubsetName  , 'AIR_CHART_IMP', 2 );
+
+
+# ==================================================================================
+# -- RUN FOLLOW
+# ==================================================================================
+zExecutionTime =ROUND((NOW()- zStart)*86400);
+
+ExecuteProcess('Z_ADM_z02_Interf_Run_Follow_Log_Recording', 
+              'pProcess', zProcess,
+              'pNb_Lign', numbertostring(Nb_Lign),
+              'pNb_Load', numbertostring(Nb_Load),
+              'pExecTime', zExecutionTime
+);
+
+
+#endregion
